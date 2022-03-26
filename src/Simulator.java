@@ -33,20 +33,12 @@
  *  FPdiv        8 (non-pipelined FP divide)                 2                              fdiv
  *  BU           1 (condition and target evaluation)         1                              bne
  *
- *  BHT/BTB:
- *   1-bit dynamic branch predictor (initialized to predict not taken) with 16-entry branch target buffer (BTB) is used.
- *   It hashes the address of a branch, L, to an entry in the BTB using bits 7-4 of L.
- *
  *  Decode Unit:
  *  The decode unit decodes (in a separate cycle) the instructions fetched by the fetch unit
  *  and stores the decoded instructions in an instruction queue which can hold up to NI instructions.
  *  For simplicity, we assume that NI has unlimited entries.
  *  That is, your instruction window size is unlimited and holds all the instructions fetched.
  *
- *  ROB:
- *  A circular reorder buffer (ROB) with NR=16 entries is used with NB=4 Common Data Busses (CDB) connecting the WB stage
- *  and the ROB to the reservation stations and the register file.
- *  You have to design the policy to resolve contention between the ROB and the WB stage on the CDB busses.
  *
  *  Functions:
  *
