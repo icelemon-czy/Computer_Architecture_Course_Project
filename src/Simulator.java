@@ -128,23 +128,4 @@ public class Simulator {
         }
     }
 
-    // Pass Test
-    public static class BranchPrediction_DFA{
-        // One bit dynamic branch predictor
-        // 0- Not take  (initialized to predict not taken)
-        // 1 -take
-        private int predictor;
-        public BranchPrediction_DFA(){
-            predictor = 0;
-        }
-        public int predict(){
-            return predictor;
-        }
-        public void change_state(int result){
-            if(result != predictor){
-                predictor = 1-predictor;
-            }
-        }
-
-    }
 }
