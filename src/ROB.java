@@ -15,7 +15,7 @@ public class ROB {
 
     public ROB(){
         head = 0;
-        tail = 0;
+        tail = NR;
         busy = new boolean[NR];
         state = new char[NR];
     }
