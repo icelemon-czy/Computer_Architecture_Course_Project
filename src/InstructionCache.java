@@ -11,7 +11,7 @@ public class InstructionCache {
         instrcutions = new HashMap<>();
     }
     public void put(int PC,String instruction){
-        instrcutions.put(pc,instruction);
+        instrcutions.put(PC,instruction);
     }
 
     public String get(int pc){
@@ -20,9 +20,9 @@ public class InstructionCache {
 
     // Display everything inside instruction cache, only for validation
     public void display(){
-        System.out.println("Instrcutions with their PC");
-        for(int pc:instrcutions.keySet()){
-            System.out.println("PC: "+ pc+" "+ instrcutions.get(pc));
+        System.out.println("Instrcutions with their Address");
+        for(int address:instrcutions.keySet()){
+            System.out.println("Address: "+ address+" "+ instrcutions.get(address));
         }
     }
 }
