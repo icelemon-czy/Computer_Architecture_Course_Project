@@ -16,4 +16,11 @@ public class MemoryUnit {
     public int load(int address){
         return memorycontent.get(address);
     }
+    // Display everything inside memory unit, only for validation
+    public void display(){
+        System.out.println("Memory Content : ");
+        for(int address: memorycontent.keySet()){
+            System.out.println("Memory address: "+address + ",Value: "+memorycontent.get(address) );
+        }
+    }
 }

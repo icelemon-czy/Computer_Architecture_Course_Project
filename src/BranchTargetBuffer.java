@@ -17,4 +17,11 @@ public class BranchTargetBuffer {
         return branchTarget.get(target);
     }
 
+    public void display(){
+        System.out.println("Branch Target Buffer");
+        for(String target : branchTarget.keySet()){
+            System.out.println(branchTarget.get(target) + ":"+ target);
+        }
+    }
+
 }
