@@ -15,6 +15,9 @@ public class InstructionCache {
     }
 
     public String get(int pc){
+        if(!instrcutions.containsKey(pc)){
+            return "";
+        }
         return instrcutions.get(pc);
     }
 

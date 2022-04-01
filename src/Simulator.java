@@ -16,16 +16,6 @@
  *  The simulated architecture:
  *  is a speculative, multi-issue, out of order CPU.
  *
- *  Components:
- *  PC:
- *  Assuming your first instruction resides in the memory location (byte address) 0x00000hex.
- *  That is, the address for the first instruction is 0x00000hex.
- *  PC+4 points to next instruction
- *
- *  Instruction Fetch:
- *  Up to NW=4 instructions can be issued every clock cycle to reservation stations.
- *
- *  Functions:
  *
  *  Register Renaming:
  *  You need to perform register renaming to eliminate the false dependences in the decode stage.
@@ -39,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 public class Simulator {
+    // Everything Starts here.
     public static void main(String[] args) throws FileNotFoundException{
         //HashSet<String> ops = new HashSet<>();
         //Collections.addAll(ops,new String[]{"add","addi","fld", "fsd","fadd","fsub","fmul","fdiv","bne"});
@@ -46,12 +37,20 @@ public class Simulator {
         InstructionCache instructionCache = new InstructionCache();
         BranchTargetBuffer branchTargetBuffer = new BranchTargetBuffer();
         ReadProgram("src/prog.dat", memoryUnit,instructionCache,branchTargetBuffer);
-
+        /**
         memoryUnit.display();
         branchTargetBuffer.display();
         instructionCache.display();
+        **/
+
+        for(int cycle = 0;cycle<100;cycle++){
+
+
+        }
+
 
     }
+
 
     /**
      * Input : input file prog.dat containing a RISC V assembly language program (code segment).
@@ -94,5 +93,6 @@ public class Simulator {
             }
         }
     }
+
 
 }
