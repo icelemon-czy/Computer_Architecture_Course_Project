@@ -45,11 +45,13 @@ public class InstructionUnit{
                 pc = pc+4;
             }
             // Put instruction into Decoder Unit
-
-
+            decodeunit.add(instruction);
         }
         return true;
     }
+    /**
+     * If ROB find out
+     */
 
 
 }
