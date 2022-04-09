@@ -25,6 +25,7 @@ public class InstructionUnit{
      */
     public boolean fetch(){
         for(int i = 0;i<NF;i++){
+            // TODO whether we finish the instruction.
             String instruction = instructioncache.get(pc);
             if(instruction.length() == 0){
                 return false;
@@ -49,6 +50,7 @@ public class InstructionUnit{
         }
         return true;
     }
+
     /**
      * If ROB find out
      */

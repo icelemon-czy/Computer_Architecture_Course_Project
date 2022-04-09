@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.HashSet;
 import java.util.Collections;
@@ -15,11 +16,15 @@ import java.util.Collections;
  *  Also, assuming that all of the physical registers can be used by either integer or floating point instructions.
  */
 public class DecodeUnit {
-
+    int NF;
     LinkedList<String> undecode_instructions;
     HashSet<String> ops;
-
-    public DecodeUnit(){
+    RegisterFile rf;
+    InstructionQueue IQ;
+    public DecodeUnit(RegisterFile rf,int NF,InstructionQueue IQ){
+        this.rf  = rf;
+        this.NF = NF;
+        this.IQ = IQ;
         undecode_instructions = new LinkedList<>();
         ops = new HashSet<>();
         Collections.addAll(ops,new String[]{"add","addi","fld", "fsd","fadd","fsub","fmul","fdiv","bne"});
@@ -30,9 +35,22 @@ public class DecodeUnit {
     }
 
     /**
-     * Split undecoded instructions into 4 string
+     * For each stage decode upto NF = 4 instructions and put it into Instruction Queue
+     */
+    public void decode(){
+        for(int i = 0 ;i<NF && undecode_instructions.size()>0;i++){
+            IQ.add(decode(undecode_instructions.removeFirst()));
+        }
+    }
+
+    /**
+     * Step 1. Split undecode instructions into 4 string
      * The first is ops
      * The other three are reg or immediate value or targets
+     * For example : fld F0, 0(R1) => String[] fld, F0, 0, R1
+     *  fmul F0, F0, F2 => String[] fmul,F0, F0,F2
+     *
+     *  Step 2. Do Register Renaming
      */
     public String[] decode(String undecode_instruction){
         String[] instructions = new String[4];
@@ -49,11 +67,46 @@ public class DecodeUnit {
         }
         instructions[2] = component[1].trim();
         instructions[3] = component[2].trim();
+
+        return RegisterRename(instructions);
+    }
+
+    public String[] RegisterRename(String[] instructions){
+        for(int i = 2;i<=3;i++){
+            if(isRegister(instructions[i])){
+                String ArchitectedRegister = instructions[i];
+                // Assign a free physical register to Architected Register if it does not original in map table
+                if(!rf.maptable.containsKey(ArchitectedRegister)){
+                    int freeregister = rf.freeList.iterator().next();
+                    rf.freeList.remove(freeregister);
+                    LinkedList<Integer> physicalregisters = new LinkedList<>();
+                    physicalregisters.add(freeregister);
+                    rf.maptable.put(ArchitectedRegister,physicalregisters);
+                }else{
+
+
+                }
+
+            }
+        }
         return instructions;
     }
 
-    public void decode(){
-
+    /**
+     * Return true if given string is a register
+     * Return false if given string is immediate value.
+     */
+    public boolean isRegister(String test){
+        if((test.charAt(0)<='9' && test.charAt(0)>='0') || test.charAt(0) == '-' || test.charAt(0) == '$'){
+            return false;
+        }
+        return true;
     }
+
+    public static void main(String[] args){
+        //System.out.println(isRegister("R0"));
+        //System.out.println(isRegister("100"));
+    }
+
 
 }
