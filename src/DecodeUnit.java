@@ -1,7 +1,5 @@
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.HashSet;
-import java.util.Collections;
+import java.util.*;
+
 /**
  *  Decode Unit:
  *  The decode unit decodes (in a separate cycle) the instructions fetched by the fetch unit
@@ -16,6 +14,7 @@ import java.util.Collections;
  *  Also, assuming that all of the physical registers can be used by either integer or floating point instructions.
  */
 public class DecodeUnit {
+    public final static Set<String> Write_Ops = Collections.unmodifiableSet(Set.of("add","addi","fld","fadd","fsub","fmul","fdiv"));
     int NF;
     LinkedList<String> undecode_instructions;
     HashSet<String> ops;
@@ -55,7 +54,7 @@ public class DecodeUnit {
     public String[] decode(String undecode_instruction){
         String[] instructions = new String[4];
         String[] component = undecode_instruction.split(",");
-        instructions[0] = component[0].split(" ")[0].trim();
+        instructions[0] = component[0].split(" ")[0].trim().toLowerCase();
         instructions[1] = component[0].split(" ")[1].trim();
         if(component[1].contains("(")){
             component[1] = component[1].trim();
@@ -72,21 +71,45 @@ public class DecodeUnit {
     }
 
     public String[] RegisterRename(String[] instructions){
+        String ops = instructions[0];
+        //For the first register
+        String ArchitectedRegister = instructions[1];
+        // Assign a free physical register to Architected Register if it does not original in map table
+        if (!rf.maptable.containsKey(ArchitectedRegister)) {
+            int freeregister = rf.freeList.iterator().next();
+            rf.freeList.remove(freeregister);
+            LinkedList<String> physicalregisters = new LinkedList<>();
+            physicalregisters.add("p"+freeregister);
+            rf.maptable.put(ArchitectedRegister, physicalregisters);
+        }else{
+            // Check the instruction, whether we update the value (W)
+            if(Write_Ops.contains(ops)){
+                // If ops is one of write ops, get free register and add to map table
+                int freeregister = rf.freeList.iterator().next();
+                rf.freeList.remove(freeregister);
+                instructions[1] = "p" + freeregister;
+                rf.maptable.get(ArchitectedRegister).addFirst(instructions[1]);
+            }else{
+                // If the ops is read ops,like fsd and bne, assign the register from the last ops.
+                instructions[1] = rf.maptable.get(ArchitectedRegister).getFirst();
+            }
+        }
+
+        // For the RAW we do nothing
         for(int i = 2;i<=3;i++){
             if(isRegister(instructions[i])){
-                String ArchitectedRegister = instructions[i];
+                ArchitectedRegister = instructions[i];
                 // Assign a free physical register to Architected Register if it does not original in map table
                 if(!rf.maptable.containsKey(ArchitectedRegister)){
                     int freeregister = rf.freeList.iterator().next();
                     rf.freeList.remove(freeregister);
-                    LinkedList<Integer> physicalregisters = new LinkedList<>();
-                    physicalregisters.add(freeregister);
+                    LinkedList<String> physicalregisters = new LinkedList<>();
+                    instructions[i] = "p"+ freeregister;
+                    physicalregisters.add(instructions[i]);
                     rf.maptable.put(ArchitectedRegister,physicalregisters);
                 }else{
-
-
+                    instructions[i] = rf.maptable.get(ArchitectedRegister).getFirst();
                 }
-
             }
         }
         return instructions;
