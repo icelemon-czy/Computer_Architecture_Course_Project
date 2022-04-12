@@ -5,9 +5,9 @@ public class InstructionUnit{
     DecodeUnit decodeunit;
     BranchPredictor branchpredictor;
     BranchTargetBuffer branchtargetbuffer;
-    public InstructionUnit(int nf,InstructionCache instructionCache,DecodeUnit decodeUnit,BranchPredictor branchPredictor,BranchTargetBuffer branchTargetBuffer){
+    public InstructionUnit(int NF,InstructionCache instructionCache,DecodeUnit decodeUnit,BranchPredictor branchPredictor,BranchTargetBuffer branchTargetBuffer){
         pc = 0;
-        NF = nf;
+        this.NF = NF;
         instructioncache = instructionCache;
         decodeunit = decodeUnit;
         branchpredictor = branchPredictor;

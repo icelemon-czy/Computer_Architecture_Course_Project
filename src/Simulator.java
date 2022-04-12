@@ -20,27 +20,51 @@
  *
  */
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 public class Simulator {
-    // Everything Starts here.
-    public static void main(String[] args) throws FileNotFoundException{
+    // All the magic Start here.
+    public static void main(String[] args) throws FileNotFoundException, IOException {
+        /**
+         * Set up configuration
+         */
+        FileInputStream fis = new FileInputStream("resources/config.properties");
+        Properties properties = new Properties();
+        properties.load(fis);
+        int NF = Integer.parseInt(properties.getProperty("NF"));
+        int NW = Integer.parseInt(properties.getProperty("NW"));
+        int NB = Integer.parseInt(properties.getProperty("NB"));
+        int NR = Integer.parseInt(properties.getProperty("NR"));
+
         MemoryUnit memoryUnit = new MemoryUnit();
         InstructionCache instructionCache = new InstructionCache();
+        ROB rob = new ROB();
+        ReservationStation reservationStation = new ReservationStation();
+        InstructionQueue instructionQueue = new InstructionQueue(NW,rob,reservationStation);
         BranchTargetBuffer branchTargetBuffer = new BranchTargetBuffer();
+        BranchPredictor branchPredictor = new BranchPredictor();
+        RegisterFile registerFile = new RegisterFile();
+        DecodeUnit decodeUnit = new DecodeUnit(registerFile,NF,instructionQueue);
+        InstructionUnit instructionUnit = new InstructionUnit(NF,instructionCache,decodeUnit,branchPredictor,branchTargetBuffer);
+
         ReadProgram("src/prog.dat", memoryUnit,instructionCache,branchTargetBuffer);
         /**
         memoryUnit.display();
         branchTargetBuffer.display();
         instructionCache.display();
-        **/
+        */
 
-        for(int cycle = 0;cycle<100;cycle++){
-
-
+        for(int cycle = 0;cycle<2;cycle++){
+            instructionUnit.fetch();
+            decodeUnit.decode();
+            instructionQueue.dispatch();
         }
-
+        for(String s :registerFile.maptable.keySet()){
+            System.out.println(s);
+        }
 
     }
 

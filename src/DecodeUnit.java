@@ -38,7 +38,8 @@ public class DecodeUnit {
      */
     public void decode(){
         for(int i = 0 ;i<NF && undecode_instructions.size()>0;i++){
-            IQ.add(decode(undecode_instructions.removeFirst()));
+            String[] decodeinstruction =decode(undecode_instructions.removeFirst());
+            IQ.add(decodeinstruction);
         }
     }
 
@@ -62,11 +63,10 @@ public class DecodeUnit {
             int right = component[1].length();
             instructions[2] = component[1].substring(0,left);
             instructions[3] = component[1].substring(left+1,right-1);
-            return instructions;
+            return RegisterRename(instructions);
         }
         instructions[2] = component[1].trim();
         instructions[3] = component[2].trim();
-
         return RegisterRename(instructions);
     }
 
@@ -79,7 +79,8 @@ public class DecodeUnit {
             int freeregister = rf.freeList.iterator().next();
             rf.freeList.remove(freeregister);
             LinkedList<String> physicalregisters = new LinkedList<>();
-            physicalregisters.add("p"+freeregister);
+            instructions[1] = "p"+ freeregister;
+            physicalregisters.add(instructions[1]);
             rf.maptable.put(ArchitectedRegister, physicalregisters);
         }else{
             // Check the instruction, whether we update the value (W)
@@ -119,7 +120,7 @@ public class DecodeUnit {
      * Return true if given string is a register
      * Return false if given string is immediate value.
      */
-    public boolean isRegister(String test){
+    public static boolean isRegister(String test){
         if((test.charAt(0)<='9' && test.charAt(0)>='0') || test.charAt(0) == '-' || test.charAt(0) == '$'){
             return false;
         }
@@ -127,7 +128,7 @@ public class DecodeUnit {
     }
 
     public static void main(String[] args){
-        //System.out.println(isRegister("R0"));
+        //System.out.println(isRegister("F2"));
         //System.out.println(isRegister("100"));
     }
 

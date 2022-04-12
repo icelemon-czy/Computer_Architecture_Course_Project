@@ -1,11 +1,14 @@
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Properties;
+import java.util.Set;
+import java.util.HashSet;
 
 public class Main {
-
+    public final static Set<String> Write_Ops = Collections.unmodifiableSet(Set.of("add","addi","fld","fadd","fsub","fmul","fdiv","bne"));
     public static void main(String[] args) throws FileNotFoundException, IOException {
 	// write your code here
         /**
@@ -21,13 +24,10 @@ public class Main {
         String target = instruction.split(",")[2].trim();
         System.out.println(target);
          **/
-        LinkedList<Integer> ints = new LinkedList<>();
-        for(int i = 0;i<10;i++){
-            ints.add(i);
-        }
-        System.out.println(ints.removeFirst());
-        System.out.println(ints.removeFirst());
-        System.out.println(ints.removeFirst());
+        System.out.println(PhysicalRegisterGenerator(132));
 
+    }
+    public static String PhysicalRegisterGenerator(int i ){
+        return "p" + i;
     }
 }

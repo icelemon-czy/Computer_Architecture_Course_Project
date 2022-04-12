@@ -5,7 +5,7 @@ import java.util.TreeSet;
 public class RegisterFile{
     final int R = 32;
     TreeSet<Integer> freeList;
-    HashMap<String, LinkedList<Integer>> maptable;
+    HashMap<String, LinkedList<String>> maptable;
     // Physical Registers store the Actual Values registers(key: id,value: value of register(could be float))
     HashMap<Integer,Double> registers;
 
