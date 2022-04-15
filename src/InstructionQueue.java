@@ -24,10 +24,17 @@ public class InstructionQueue {
     public void dispatch(){
         for(int i = 0;i<NW;i++){
             String[] ready = ready_instructions.removeFirst();
+            /**
             for(String s : ready){
                 System.out.print(s+" ");
             }
             System.out.println();
+             **/
+            if(ready[0].equals("add") || ready[0].equals("addi")){
+                if( reservationStation.INTRS.can_issue() ){
+
+                }
+            }
         }
     }
     public void Dispatch(String[] instruction){

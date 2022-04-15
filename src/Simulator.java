@@ -41,12 +41,12 @@ public class Simulator {
 
         MemoryUnit memoryUnit = new MemoryUnit();
         InstructionCache instructionCache = new InstructionCache();
+        RegisterFile registerFile = new RegisterFile();
         ROB rob = new ROB();
-        ReservationStation reservationStation = new ReservationStation();
+        ReservationStation reservationStation = new ReservationStation(registerFile);
         InstructionQueue instructionQueue = new InstructionQueue(NW,rob,reservationStation);
         BranchTargetBuffer branchTargetBuffer = new BranchTargetBuffer();
         BranchPredictor branchPredictor = new BranchPredictor();
-        RegisterFile registerFile = new RegisterFile();
         DecodeUnit decodeUnit = new DecodeUnit(registerFile,NF,instructionQueue);
         InstructionUnit instructionUnit = new InstructionUnit(NF,instructionCache,decodeUnit,branchPredictor,branchTargetBuffer);
 

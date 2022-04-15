@@ -5,19 +5,28 @@
  * You have to design the policy to resolve contention between the ROB and the WB stage on the CDB busses.
  */
 public class ROB {
-    private final int NR = 16;
-    private int head,tail;
-    private boolean[] busy;
+    public final int NR = 16;
+    public int head,tail;
+    public boolean first;
+
+    public boolean[] busy;
     // Instruction
-    private char[] state;
+    public char[] state;
     // Destination
     // Memory
 
     public ROB(){
+        first = false;
         head = 0;
-        tail = NR;
+        tail = 1;
         busy = new boolean[NR];
         state = new char[NR];
+    }
+    public int can_issue(){
+        if(head == tail){
+            return -1;
+        }
+        return head;
     }
 
 }
