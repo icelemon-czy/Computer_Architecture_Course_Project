@@ -18,8 +18,10 @@ public class ReservationStation {
         final int latency = 1;
         final int number = 4;
         boolean[] busy;
+        boolean one_execute; // true if one of the int RS is currently execute
         int current_execute;
-        int waiting_cycle = 4;
+        int cycles = 4;
+        int[] waiting_cycle;
         int current_assign;
 
         String[] ops;
@@ -47,17 +49,19 @@ public class ReservationStation {
         public INT(){
             busy = new boolean[number];
             ops = new String[number];
-            modej = new int[3];
-            modek = new int[3];
+            modej = new int[number];
+            modek = new int[number];
             Vj = new double[number];
             Vk = new double[number];
             Qj = new int[number];
             Qk = new int[number];
             Qj_value = new double[number];
             Qk_value = new double[number];
-
             immediate  = new double[number];
             dest = new int[number];
+
+            one_execute = false;
+            current_execute = 0;
         }
 
         /**
@@ -65,6 +69,9 @@ public class ReservationStation {
          * return false otherwise
          */
         public boolean can_issue(){
+            if(!one_execute){
+                return true;
+            }
             for(int i = 0;i<number;i++){
                 if(!busy[i]){
                     return true;
@@ -78,13 +85,17 @@ public class ReservationStation {
          * Issue instruction into the reservation station.
          */
         public void issue(String[] addinstruction,int ROBnumber){
+            one_execute = true;
+
             // First Find a revervation station
             for(int i = 0 ;i<number;i++){
                 if(!busy[i]){
                     current_assign = i;
                     busy[i] = true;
+                    break;
                 }
             }
+
             // current assign
             ops[current_assign] = addinstruction[0];
             // QJ QK VJ VK
@@ -93,7 +104,7 @@ public class ReservationStation {
             // If not, Qj/Qk  store the ROB index
             int j =  Integer.parseInt(addinstruction[2].substring(1)); // Physical register index
             if(RF.RegisterStatus[j]==-1){
-                Vj[current_assign] = RF.registers.get(j);
+                Vj[current_assign] = RF.register_value[j];
                 modej[current_assign]=0;
             }else{
                 Qj[current_assign] = RF.RegisterStatus[j]; //Find ROB value later store the ROB number
@@ -106,7 +117,7 @@ public class ReservationStation {
             }else{
                 int k =  Integer.parseInt(addinstruction[3].substring(1));
                 if(RF.RegisterStatus[k]==-1){
-                    Vk[current_assign] = RF.registers.get(k);
+                    Vk[current_assign] = RF.register_value[k];
                     modek[current_assign]=0;
                 }else{
                     Qk[current_assign] = RF.RegisterStatus[k]; //Find ROB value later store the ROB number

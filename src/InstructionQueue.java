@@ -21,6 +21,12 @@ public class InstructionQueue {
         ready_instructions.add(ready_instruction);
     }
 
+    /**
+     * Issue (sometimes called Dispatch)
+     * If a RES station and a ROB are free,
+     * issue the instruction to the RES station
+     * after reading ready registers and renaming non-ready registers
+     */
     public void dispatch(){
         for(int i = 0;i<NW;i++){
             String[] ready = ready_instructions.removeFirst();
@@ -32,7 +38,13 @@ public class InstructionQueue {
              **/
             if(ready[0].equals("add") || ready[0].equals("addi")){
                 if( reservationStation.INTRS.can_issue() ){
-
+                    int ROB_head = rob.can_issue();
+                    if(ROB_head == -1){
+                        // Cannot issue the instruction
+                        return;
+                    }
+                    reservationStation.INTRS.issue(ready,ROB_head);
+                    rob.issue(ready);
                 }
             }
         }

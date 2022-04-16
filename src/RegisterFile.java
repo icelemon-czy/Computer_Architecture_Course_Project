@@ -7,7 +7,7 @@ public class RegisterFile{
     TreeSet<Integer> freeList;
     HashMap<String, LinkedList<String>> maptable;
     // Physical Registers store the Actual Values registers(key: id,value: value of register(could be float))
-    HashMap<Integer,Double> registers;
+    double[] register_value;
 
     // Physical Register status
     // -1 means empty
@@ -15,7 +15,7 @@ public class RegisterFile{
     int[] RegisterStatus;
 
     public RegisterFile(){
-        registers = new HashMap<>();
+        register_value = new double[R];
         freeList = new TreeSet<>();
         for(int i = 0;i<R;i++){
             freeList.add(i);

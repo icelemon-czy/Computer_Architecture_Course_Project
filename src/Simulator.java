@@ -62,9 +62,11 @@ public class Simulator {
             decodeUnit.decode();
             instructionQueue.dispatch();
         }
+        /**
         for(String s :registerFile.maptable.keySet()){
             System.out.println(s);
         }
+         **/
 
     }
 
