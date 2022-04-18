@@ -4,15 +4,15 @@ import java.util.TreeSet;
 
 public class RegisterFile{
     final static int R = 32;
-    TreeSet<Integer> freeList;
-    HashMap<String, LinkedList<String>> maptable;
+    static TreeSet<Integer> freeList;
+    static HashMap<String, LinkedList<String>> maptable;
     // Physical Registers store the Actual Values registers(key: id,value: value of register(could be float))
-    double[] register_value;
+    static double[] register_value;
 
     // Physical Register status
     // -1 means empty
     // i means ROBi
-    int[] RegisterStatus;
+    static int[] RegisterStatus;
 
     public RegisterFile(){
         register_value = new double[R];
