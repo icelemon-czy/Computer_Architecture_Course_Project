@@ -12,51 +12,67 @@ public class ROB {
      * ROB_(NR-1)
      * */
     public final int NR = 16;
-    public int head,tail;// Head is also a Pointer points to the next commit instruction.
+    public int head;// Head is also a Pointer points to the next commit instruction.
+    public static int tail;
     public boolean first;
 
     /* ROB status Table*/
     public boolean[] busy;
     public String[][] instructions;
-    public char[] state;/* C:Commit, E:Execute, W: Write Results I:Issue*/
-    public int[] dest; // dest:
+    public static char[] state;/* C:Commit, E:Execute, W: Write Results I:Issue*/
+    public int[] dest; // dest: physical Register
     public double[] dest_value;
 
     public ROB(){
         first = true;
         head = 0;
-        tail = 0; // point to the first unavailable instruction
+        tail = 0;
         busy = new boolean[NR];
         state = new char[NR];
         instructions = new String[NR][4];
         dest = new int[NR];
         dest_value = new double[NR];
     }
+
     /* head ****** tail*/  /* tail ***  head*/
     public int can_issue(){
         if(first){
             first = false;
-            return head;
+            return tail;
         }
         if(head == tail){
             return -1;
         }
-        return head;
+        return tail;
     }
 
     public void issue(String[] instruction) {
-        busy[head] = true;
+        busy[tail] = true;
         for(int i = 0;i<4;i++) {
-            instructions[head][i] = instruction[i];
+            instructions[tail][i] = instruction[i];
         }
-        state[head] = 'i';
-        dest[head] = Integer.parseInt(instruction[1].substring(1));
-        head++;
-        head = head%NR;
+        state[tail] = 'i';
+        dest[tail] = Integer.parseInt(instruction[1].substring(1));
+        tail++;
+        tail = tail%NR;
     }
 
-    // TODO API pass value
-    public void WB_passvalue(){
+    /**
+     * Allow Other Parts to Change State
+     */
+    public static void SetState(int ROBnumber,char s){
+        state[ROBnumber] = s;
+    }
+
+
+    /**
+     * For each instruction, there is three types of commitment
+     * 1. Normal Commit
+     *      - Update the Register
+     * 2. Store commit
+     * 3. Branch Prediction
+     */
+    public void Commit(){
 
     }
 

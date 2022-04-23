@@ -26,18 +26,23 @@ import java.io.IOException;
 import java.util.*;
 
 public class Simulator {
-    // All the magic Start here.
-    public static void main(String[] args) throws FileNotFoundException, IOException {
-        /**
-         * Set up configuration
-         */
+    public static int getProperty(String propertyname)throws FileNotFoundException, IOException{
         FileInputStream fis = new FileInputStream("resources/config.properties");
         Properties properties = new Properties();
         properties.load(fis);
-        int NF = Integer.parseInt(properties.getProperty("NF"));
-        int NW = Integer.parseInt(properties.getProperty("NW"));
-        int NB = Integer.parseInt(properties.getProperty("NB"));
-        int NR = Integer.parseInt(properties.getProperty("NR"));
+        return Integer.parseInt(properties.getProperty(propertyname));
+    }
+
+    // All the magic Start here.
+    public static void main(String[] args)throws FileNotFoundException, IOException {
+        /**
+         * Set up configuration
+         */
+
+        int NF = getProperty("NF");
+        int NW = getProperty("NW");
+        //int NB = Integer.parseInt(properties.getProperty("NB"));
+        //int NR = Integer.parseInt(properties.getProperty("NR"));
 
         MemoryUnit memoryUnit = new MemoryUnit();
         InstructionCache instructionCache = new InstructionCache();

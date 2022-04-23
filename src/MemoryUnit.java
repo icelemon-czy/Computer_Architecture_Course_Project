@@ -6,16 +6,17 @@
  */
 import java.util.HashMap;
 public class MemoryUnit {
-    HashMap<Integer,Integer> memorycontent;
+    static HashMap<Integer,Integer> memorycontent;
     public MemoryUnit(){
         memorycontent = new HashMap<>();
     }
-    public void store(int address,int value){
+    public static void store(int address,int value){
         memorycontent.put(address,value);
     }
-    public int load(int address){
+    public static int load(int address){
         return memorycontent.get(address);
     }
+
     // Display everything inside memory unit, only for validation
     public void display(){
         System.out.println("Memory Content : ");

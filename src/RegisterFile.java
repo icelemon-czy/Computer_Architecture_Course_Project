@@ -4,27 +4,31 @@ import java.util.TreeSet;
 
 public class RegisterFile{
     final static int R = 32;
-    static TreeSet<Integer> freeList;
-    static HashMap<String, LinkedList<String>> maptable;
+    public static TreeSet<Integer> freeList;
+    public static HashMap<String, LinkedList<String>> maptable;
     // Physical Registers store the Actual Values registers(key: id,value: value of register(could be float))
-    static double[] register_value;
+    public static double[] register_value;
 
     // Physical Register status
-    // -1 means empty
+    // -1 means Register currently hold the value
     // i means ROBi
-    static int[] RegisterStatus;
+    public static int[] RegisterStatus;
 
     public RegisterFile(){
-        register_value = new double[R];
         freeList = new TreeSet<>();
         for(int i = 0;i<R;i++){
             freeList.add(i);
         }
         maptable = new HashMap<>();
+        register_value = new double[R];
         RegisterStatus = new int[R];
         for(int i = 0;i<R;i++){
             RegisterStatus[i] = -1;
         }
+    }
+
+    public static void SetRegisterStatus(int register,int ROBNmber){
+        RegisterStatus[register]  = ROBNmber;
     }
 
 

@@ -6,14 +6,14 @@
  */
 import java.util.HashMap;
 public class BranchTargetBuffer {
-    HashMap<String,Integer> branchTarget;
+    static HashMap<String,Integer> branchTarget;
     public BranchTargetBuffer(){
         branchTarget = new HashMap<>();
     }
-    public void add(String target,int address){
+    public static void add(String target,int address){
         branchTarget.put(target,address);
     }
-    public int getAddress(String target){
+    public static int getAddress(String target){
         return branchTarget.get(target);
     }
 

@@ -25,7 +25,7 @@ public class ReservationStation {
 
         String[] ops;
 
-        // mode : 0: V ,1:in Q, 2:in immediate
+        // mode : 0: (Vj) register current hold the value,(Qj) 1: register value waiting in ROB 2: immediate Value
         int[] modej;
         int[] modek;
 
@@ -36,8 +36,6 @@ public class ReservationStation {
         // the reservation stations producing the source operands (if stall to avoid RAW hazards) - Qj and Qk
         int[] Qj; // Example : ROB3
         int[] Qk;
-        //double[] Qj_value;
-        //double[] Qk_value;
 
         // Store the immediate value
         double[] immediate ;
@@ -55,8 +53,6 @@ public class ReservationStation {
             Vk = new double[number];
             Qj = new int[number];
             Qk = new int[number];
-            //Qj_value = new double[number];
-            //Qk_value = new double[number];
             immediate  = new double[number];
             dest = new int[number];
             dest_value = new double[number];
@@ -66,6 +62,7 @@ public class ReservationStation {
             }
             one_execute = false;
             current_execute = 0;
+            current_assign = 0;
         }
 
         /**
@@ -95,37 +92,20 @@ public class ReservationStation {
              */
             if(!one_execute){
                 current_assign = 0;
+                current_execute = 0;
                 busy[0] = true;
                 one_execute =true;
-            }else{
-                if(busy[0]){
-                    for(int m = 1;m<number;m++){
-                        if(!busy[m]){
-                            current_assign = m;
-                            busy[m] = true;
-                            break;
-                        }
-                    }
-                }else{
-                    if(busy[number]){
-                        current_assign = 0;
-                        busy[0] = true;
-                    }else{
-                        for(int m = number-1;m>0;m++){
-                            if(busy[m]){
-                                current_assign = m+1;
-                                busy[m+1] = true;
-                                break;
-                            }
-                        }
-                    }
-                }
             }
+            else{
+                current_assign = (current_assign +1)%number;
+                busy[current_assign] = true;
+            }
+
             /*Set up*/
             ops[current_assign] = addinstruction[0];
             // QJ QK VJ VK
             // Check Register status
-            // if  Pi == -1 then find value in register vj/vk = Reg[]
+            // if  Pi == -1 then register hold the value  vj/vk = Reg[]
             // If not, Qj/Qk  store the ROB index
             int j =  Integer.parseInt(addinstruction[2].substring(1)); // Physical register index
             if(RegisterFile.RegisterStatus[j]==-1){
@@ -139,6 +119,7 @@ public class ReservationStation {
             if(addinstruction[0].equals("addi")){
                 int imm = Integer.parseInt(addinstruction[3]);
                 immediate[current_assign] = imm;
+                modek[current_assign] = 2;
             }else{
                 int k =  Integer.parseInt(addinstruction[3].substring(1));
                 if(RegisterFile.RegisterStatus[k]==-1){
@@ -149,56 +130,92 @@ public class ReservationStation {
                     modek[current_assign]=1;
                 }
             }
-            dest[current_assign]  = ROBnumber;
+            dest[current_assign] = ROBnumber;
+            ROB.SetState(dest[current_execute], 'i');
             int dest_register =  Integer.parseInt(addinstruction[1].substring(1));
-            RegisterFile.RegisterStatus[dest_register] = ROBnumber;
+            RegisterFile.SetRegisterStatus(dest_register,ROBnumber);
         }
 
         /**
          *  Execute (current_execute) instruction
-         *  If the execution finish
+         *  When both operands ready then execute;
+         *  if not ready, watch CDB for result;
+         *  when both in reservation station, execute;
          */
         public void execute(){
             if(one_execute) {
+                /* Change The State of the Instruction In ROB*/
+                ROB.SetState(dest[current_execute], 'e');
+
                 // Check if we are stalled
+                /* If we are stalled, then watch CDB */
                 /* the other reservation stations are still producing the source operands*/
                 if(modej[current_execute] == 1){
-                    return;
+                    // Watch CDB
+                    if(CDB.hasValue(Qj[current_execute])){
+                        // CDB has the Value therefore we get value from CDB
+                        modej[current_execute] = 0;
+                        Vj[current_execute] = CDB.get(Qj[current_execute]);
+                    }else{
+                        return;
+                    }
                 }
                 if(ops[current_execute].equals("add")){
                     if(modek[current_execute] == 1){
-                        return;
+                        // Watch CDB
+                        if(CDB.hasValue(Qk[current_execute])){
+                            // CDB has the Value therefore we get value from CDB
+                            modek[current_execute] = 0;
+                            Vk[current_execute] = CDB.get(Qk[current_execute]);
+                        }else {
+                            return;
+                        }
                     }
                 }
                 /* Then start to execute */
                 if(waiting_cycle[current_execute]>0) {
                     waiting_cycle[current_execute]--;
                 }
+            }
+        }
 
-                if(waiting_cycle[current_execute] ==0){
+        /**
+         * Write on Common Data Bus to all awaiting FUs and reorder buffer
+         * Mark reservation station available.
+         */
+        public void writeback(){
+            if(one_execute) {
+                if (waiting_cycle[current_execute] == 0 && !CDB.isfull()) {
                     // Finish Execution
-                    if(ops[current_execute].equals("add")){
+                    if (ops[current_execute].equals("add")) {
                         dest_value[current_execute] = Vj[current_execute] + Vk[current_execute];
-                    }else{
+                    } else {
                         dest_value[current_execute] = Vj[current_execute] + immediate[current_execute];
                     }
-                    /* TODO Send Value with ROB number to CDB */
-                    // int ROB =  dest[current_execute];
+
+                    /* Send Value with ROB number to CDB */
+                    int ROB = dest[current_execute];
+
+                    CDB.set(ROB, dest_value[current_execute]);
 
                     /* Mark the Reservation Station to unbusy*/
                     waiting_cycle[current_execute] = latency;
                     busy[current_execute] = false;
-                    current_execute ++;
-                    current_execute = current_execute%number;
+                    current_execute++;
+                    current_execute = current_execute % number;
+
+                    /* Update Execution */
+                    if (busy[current_execute]) {
+                        one_execute = true;
+                    } else {
+                        one_execute = false;
+                    }
+
                 }
             }
         }
     }
 
-    // FPadd -> fadd / fsub
-    // Example:
-    // fadd R2, R0, R1
-    // fsub R2, R0, R1
     public class FPadd{
         int latency = 3;
         int number = 3;
@@ -244,12 +261,9 @@ public class ReservationStation {
             }
             one_execute = false;
             current_execute = 0;
+            current_assign = 0;
         }
 
-        /**
-         * return true if we can issue the instruction
-         * return false otherwise
-         */
         public boolean can_issue(){
             if(!one_execute){
                 return true;
@@ -262,43 +276,16 @@ public class ReservationStation {
             return false;
         }
 
-        /**
-         * input instruction
-         * Issue instruction into the reservation station.
-         */
         public void issue(String[] addinstruction,int ROBnumber){
-            /**
-             * Find the free reservation station
-             *  at the next spot of last assigned reservation station
-             */
             if(!one_execute){
                 current_assign = 0;
+                current_execute = 0;
                 busy[0] = true;
                 one_execute =true;
             }
             else{
-                if(busy[0]){
-                    for(int m = 1;m<number;m++){
-                        if(!busy[m]){
-                            current_assign = m;
-                            busy[m] = true;
-                            break;
-                        }
-                    }
-                }else{
-                    if(busy[number]){
-                        current_assign = 0;
-                        busy[0] = true;
-                    }else{
-                        for(int m = number-1;m>0;m++){
-                            if(busy[m]){
-                                current_assign = m+1;
-                                busy[m+1] = true;
-                                break;
-                            }
-                        }
-                    }
-                }
+                current_assign = (current_assign +1)%number;
+                busy[current_assign] = true;
             }
 
             /*Set up*/
@@ -326,29 +313,530 @@ public class ReservationStation {
             }
 
             dest[current_assign]  = ROBnumber;
+            ROB.SetState(dest[current_execute], 'i');
             int dest_register =  Integer.parseInt(addinstruction[1].substring(1));
             RegisterFile.RegisterStatus[dest_register] = ROBnumber;
         }
-    }
 
+        public void execute(){
+            if(one_execute) {
+                ROB.SetState(dest[current_execute], 'e');
+
+                if(modej[current_execute] == 1){
+                    if(CDB.hasValue(Qj[current_execute])){
+                        modej[current_execute] = 0;
+                        Vj[current_execute] = CDB.get(Qj[current_execute]);
+                    }else{
+                        return;
+                    }
+                }
+
+                if(modek[current_execute] == 1){
+                    if(CDB.hasValue(Qk[current_execute])){
+                        modek[current_execute] = 0;
+                        Vk[current_execute] = CDB.get(Qk[current_execute]);
+                    }else{
+                        return;
+                    }
+                }
+                /* Then start to execute */
+                if(waiting_cycle[current_execute]>0) {
+                    waiting_cycle[current_execute]--;
+                }
+            }
+        }
+
+        public void writeback(){
+            if(one_execute) {
+                if (waiting_cycle[current_execute] == 0 && !CDB.isfull()) {
+                    // Finish Execution
+                    if (ops[current_execute].equals("fadd")) {
+                        dest_value[current_execute] = Vj[current_execute] + Vk[current_execute];
+                    } else {
+                        dest_value[current_execute] = Vj[current_execute] - Vk[current_execute];
+                    }
+                    int ROB = dest[current_execute];
+
+                    CDB.set(ROB, dest_value[current_execute]);
+
+                    waiting_cycle[current_execute] = latency;
+                    busy[current_execute] = false;
+                    current_execute++;
+                    current_execute = current_execute % number;
+
+                    if (busy[current_execute]) {
+                        one_execute = true;
+                    } else {
+                        one_execute = false;
+                    }
+
+                }
+            }
+        }
+    }
 
     public class FPmult{
         int latency  = 4;
         int number = 4;
+
+        boolean[] busy;
+        boolean one_execute; // true if one of the int RS is currently execute
+        int current_execute;
+        int[] waiting_cycle;
+        int current_assign;
+
+        // mode : 0: V,1:in Q
+        int[] modej;
+        int[] modek;
+
+        // source operands (data values) - Vj and Vk
+        double[] Vj;// Example : Reg p3
+        double[] Vk;
+
+        // the reservation stations producing the source operands (if stall to avoid RAW hazards) - Qj and Qk
+        int[] Qj; // Example : ROB3
+        int[] Qk;
+
+        //Destination example: ROB4
+        int[] dest;
+        double[] dest_value;
+
+        public FPmult(){
+            busy = new boolean[number];
+            modej = new int[number];
+            modek = new int[number];
+            Vj = new double[number];
+            Vk = new double[number];
+            Qj = new int[number];
+            Qk = new int[number];
+            dest = new int[number];
+            dest_value = new double[number];
+            waiting_cycle = new int[number];
+            for(int i = 0;i<number;i++){
+                waiting_cycle[i] = latency;
+            }
+            one_execute = false;
+            current_execute = 0;
+            current_assign = 0;
+        }
+
+        public boolean can_issue(){
+            if(!one_execute){
+                return true;
+            }
+            for(int i = 0;i<number;i++){
+                if(!busy[i]){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void issue(String[] addinstruction,int ROBnumber){
+            if(!one_execute){
+                current_assign = 0;
+                current_execute = 0;
+                busy[0] = true;
+                one_execute =true;
+            }
+            else{
+                current_assign = (current_assign +1)%number;
+                busy[current_assign] = true;
+            }
+
+            /*Set up*/
+            // QJ QK VJ VK
+            // Check Register status
+            // if  Pi == -1 then find value in register vj/vk = Reg[]
+            // If not, Qj/Qk  store the ROB index
+            int j =  Integer.parseInt(addinstruction[2].substring(1)); // Physical register index
+            if(RegisterFile.RegisterStatus[j]==-1){
+                Vj[current_assign] = RegisterFile.register_value[j];
+                modej[current_assign]=0;
+            }else{
+                Qj[current_assign] = RegisterFile.RegisterStatus[j]; //Find ROB value later store the ROB number
+                modej[current_assign]=1;
+            }
+
+            int k =  Integer.parseInt(addinstruction[3].substring(1));
+            if(RegisterFile.RegisterStatus[k]==-1) {
+                Vk[current_assign] = RegisterFile.register_value[k];
+                modek[current_assign] = 0;
+            }else {
+                Qk[current_assign] = RegisterFile.RegisterStatus[k]; //Find ROB value later store the ROB number
+                modek[current_assign] = 1;
+            }
+
+            dest[current_assign]  = ROBnumber;
+            ROB.SetState(dest[current_execute], 'i');
+            int dest_register =  Integer.parseInt(addinstruction[1].substring(1));
+            RegisterFile.RegisterStatus[dest_register] = ROBnumber;
+        }
+
+        public void execute(){
+            if(one_execute) {
+                ROB.SetState(dest[current_execute], 'e');
+
+                if(modej[current_execute] == 1){
+                    if(CDB.hasValue(Qj[current_execute])){
+                        modej[current_execute] = 0;
+                        Vj[current_execute] = CDB.get(Qj[current_execute]);
+                    }else{
+                        return;
+                    }
+                }
+
+                if(modek[current_execute] == 1){
+                    if(CDB.hasValue(Qk[current_execute])){
+                        modek[current_execute] = 0;
+                        Vk[current_execute] = CDB.get(Qk[current_execute]);
+                    }else{
+                        return;
+                    }
+                }
+                /* Then start to execute */
+                if(waiting_cycle[current_execute]>0) {
+                    waiting_cycle[current_execute]--;
+                }
+            }
+        }
+
+        public void writeback(){
+            if(one_execute) {
+                if (waiting_cycle[current_execute] == 0 && !CDB.isfull()) {
+                    // Finish Execution
+                    dest_value[current_execute] = Vj[current_execute] * Vk[current_execute];
+
+                    int ROB = dest[current_execute];
+                    CDB.set(ROB, dest_value[current_execute]);
+
+                    waiting_cycle[current_execute] = latency;
+                    busy[current_execute] = false;
+                    current_execute++;
+                    current_execute = current_execute % number;
+
+                    if (busy[current_execute]) {
+                        one_execute = true;
+                    } else {
+                        one_execute = false;
+                    }
+                }
+            }
+        }
     }
+
     public class FPdiv {
         int latency = 8;
         int number = 2;
+        boolean[] busy;
+        boolean one_execute; // true if one of the int RS is currently execute
+        int current_execute;
+        int[] waiting_cycle;
+        int current_assign;
+
+        // mode : 0: V,1:in Q
+        int[] modej;
+        int[] modek;
+
+        // source operands (data values) - Vj and Vk
+        double[] Vj;// Example : Reg p3
+        double[] Vk;
+
+        // the reservation stations producing the source operands (if stall to avoid RAW hazards) - Qj and Qk
+        int[] Qj; // Example : ROB3
+        int[] Qk;
+
+        //Destination example: ROB4
+        int[] dest;
+        double[] dest_value;
+
+        public FPdiv(){
+            busy = new boolean[number];
+            modej = new int[number];
+            modek = new int[number];
+            Vj = new double[number];
+            Vk = new double[number];
+            Qj = new int[number];
+            Qk = new int[number];
+            dest = new int[number];
+            dest_value = new double[number];
+            waiting_cycle = new int[number];
+            for(int i = 0;i<number;i++){
+                waiting_cycle[i] = latency;
+            }
+            one_execute = false;
+            current_execute = 0;
+            current_assign = 0;
+        }
+
+        public boolean can_issue(){
+            if(!one_execute){
+                return true;
+            }
+            for(int i = 0;i<number;i++){
+                if(!busy[i]){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void issue(String[] addinstruction,int ROBnumber){
+            if(!one_execute){
+                current_assign = 0;
+                current_execute = 0;
+                busy[0] = true;
+                one_execute =true;
+            }
+            else{
+                current_assign = (current_assign +1)%number;
+                busy[current_assign] = true;
+            }
+
+            /*Set up*/
+            // QJ QK VJ VK
+            // Check Register status
+            // if  Pi == -1 then find value in register vj/vk = Reg[]
+            // If not, Qj/Qk  store the ROB index
+            int j =  Integer.parseInt(addinstruction[2].substring(1)); // Physical register index
+            if(RegisterFile.RegisterStatus[j]==-1){
+                Vj[current_assign] = RegisterFile.register_value[j];
+                modej[current_assign]=0;
+            }else{
+                Qj[current_assign] = RegisterFile.RegisterStatus[j]; //Find ROB value later store the ROB number
+                modej[current_assign]=1;
+            }
+
+            int k =  Integer.parseInt(addinstruction[3].substring(1));
+            if(RegisterFile.RegisterStatus[k]==-1) {
+                Vk[current_assign] = RegisterFile.register_value[k];
+                modek[current_assign] = 0;
+            }else {
+                Qk[current_assign] = RegisterFile.RegisterStatus[k]; //Find ROB value later store the ROB number
+                modek[current_assign] = 1;
+            }
+
+            dest[current_assign]  = ROBnumber;
+            ROB.SetState(dest[current_execute], 'i');
+            int dest_register =  Integer.parseInt(addinstruction[1].substring(1));
+            RegisterFile.RegisterStatus[dest_register] = ROBnumber;
+        }
+
+        public void execute(){
+            if(one_execute) {
+                ROB.SetState(dest[current_execute], 'e');
+                if(modej[current_execute] == 1){
+                    if(CDB.hasValue(Qj[current_execute])){
+                        modej[current_execute] = 0;
+                        Vj[current_execute] = CDB.get(Qj[current_execute]);
+                    }else{
+                        return;
+                    }
+                }
+                if(modek[current_execute] == 1){
+                    if(CDB.hasValue(Qk[current_execute])){
+                        modek[current_execute] = 0;
+                        Vk[current_execute] = CDB.get(Qk[current_execute]);
+                    }else{
+                        return;
+                    }
+                }
+
+                /* Then start to execute */
+                if(waiting_cycle[current_execute]>0) {
+                    waiting_cycle[current_execute]--;
+                }
+            }
+        }
+
+        public void writeback(){
+            if(one_execute) {
+                if(waiting_cycle[current_execute] ==0 && !CDB.isfull()){
+                    // Finish Execution
+                    dest_value[current_execute] = Vj[current_execute] / Vk[current_execute];
+
+                    int ROB =  dest[current_execute];
+                    CDB.set(ROB,dest_value[current_execute]);
+
+                    waiting_cycle[current_execute] = latency;
+                    busy[current_execute] = false;
+                    current_execute ++;
+                    current_execute = current_execute%number;
+
+                    if(busy[current_execute]){
+                        one_execute = true;
+                    }else{
+                        one_execute = false;
+                    }
+                }
+            }
+        }
     }
 
+    // fld F2, 200(R0)
+    // fsd F0, 0(R2)
     public class LoadStore{
         int latency = 1;
         int number = 2;
+
+        boolean[] busy;
+        boolean one_execute; // true if one of the int RS is currently execute
+        int current_execute;
+        int[] waiting_cycle;
+        int current_assign;
+
+        String[] ops;
+
+        // mode : 0: (Vj) register current hold the value,(Qj) 1: register value waiting in ROB 2: immediate Value
+        int[] modej;
+        int[] modek;
+
+        // source operands (data values) - Vj and Vk
+        double[] Vj;// Example : Reg p3
+        double[] Vk;
+
+        // the reservation stations producing the source operands (if stall to avoid RAW hazards) - Qj and Qk
+        int[] Qj; // Example : ROB3
+        int[] Qk;
+
+        // Store the immediate value
+        double[] immediate ;
+
+        //Destination example: ROB4
+        int[] dest;
+        double[] dest_value;
     }
 
+    // Example : bne R1,$0, loop
     public class BU{
         int latency = 1;
         int number = 1;
+        int remaincycle = 1;
+
+        boolean busy;
+
+        // mode : 0: (Vj) register current hold the value,(Qj) 1: register value waiting in ROB 2: immediate Value
+        int modej;
+        int modek;
+
+        // source operands (data values) - Vj and Vk
+        double Vj;// Example : Reg p3
+        double Vk;
+
+        // the reservation stations producing the source operands (if stall to avoid RAW hazards) - Qj and Qk
+        int Qj; // Example : ROB3
+        int Qk;
+
+        // Store the immediate value
+        double immediate;
+
+        //Destination example: ROB4
+        // If dest value = 1 Then it is equal
+        // otherwise (0) not equal
+        int dest;
+        double dest_value;
+
+        public BU(){
+            busy = false;
+            modej = 0;
+            modek = 0;
+            Vj = 0;
+            Vk = 0;
+            Qj = 0;
+            Qk = 0;
+            immediate = 0;
+            dest = 0;
+            dest_value = 0;
+        }
+
+        public boolean can_issue(){
+            if(busy){
+                return false;
+            }
+            return true;
+        }
+
+        public void issue(String[] addinstruction,int ROBnumber){
+            int j =  Integer.parseInt(addinstruction[1].substring(1)); // Physical register index
+            if(RegisterFile.RegisterStatus[j]==-1){
+                Vj = RegisterFile.register_value[j];
+                modej=0;
+            }
+            else{
+                Qj= RegisterFile.RegisterStatus[j]; //Find ROB value later store the ROB number
+                modej=1;
+            }
+
+            if(isImmediate(addinstruction[2])){
+                int imm = Integer.parseInt(addinstruction[2].substring(1));
+                immediate = imm;
+                modek = 2;
+            }
+            else{
+                int k =  Integer.parseInt(addinstruction[2].substring(1));
+                if(RegisterFile.RegisterStatus[k]==-1){
+                    Vk= RegisterFile.register_value[k];
+                    modek=0;
+                }else{
+                    Qk = RegisterFile.RegisterStatus[k]; //Find ROB value later store the ROB number
+                    modek=1;
+                }
+            }
+
+            dest = ROBnumber;
+            ROB.SetState(dest, 'i');
+            /**
+            int dest_register =  Integer.parseInt(addinstruction[1].substring(1));
+            RegisterFile.SetRegisterStatus(dest_register,ROBnumber);
+             **/
+        }
+
+        public void execute(){
+            if(busy) {
+                ROB.SetState(dest, 'e');
+                if (modej == 1) {
+                    if (CDB.hasValue(Qj)) {
+                        modej = 0;
+                        Vj = CDB.get(Qj);
+                    } else {
+                        return;
+                    }
+                }
+                if (modek == 1) {
+                    if (CDB.hasValue(Qk)) {
+                        modek = 0;
+                        Vk = CDB.get(Qk);
+                    } else {
+                        return;
+                    }
+                }
+
+                /* Then start to execute */
+                if(remaincycle >0){
+                    remaincycle--;
+                }
+            }
+        }
+
+        public void writeback(){
+            if(busy) {
+                if(remaincycle == 0 && !CDB.isfull()){
+                    if(Vj == Vk) {
+                        dest_value = 1;
+                    }else{
+                        dest_value  =0;
+                    }
+                    int ROB = dest;
+                    CDB.set(ROB, dest_value);
+                    busy= false;
+                }
+            }
+        }
+    }
+
+
+    public boolean isImmediate(String s){
+        return s.charAt(0) == '$';
     }
 
     INT INTRS;
