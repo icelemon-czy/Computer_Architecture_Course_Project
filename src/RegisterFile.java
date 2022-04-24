@@ -27,6 +27,14 @@ public class RegisterFile{
         }
     }
 
+    public static void update(int register, int ROBnumber,double value){
+        if(RegisterStatus[register] != ROBnumber){
+            System.err.println("Potential Error");
+        }
+        RegisterStatus[register] = -1;
+        register_value[register] = value;
+    }
+
     public static void SetRegisterStatus(int register,int ROBNmber){
         RegisterStatus[register]  = ROBNmber;
     }

@@ -4,7 +4,10 @@
  * connecting the WB stage and the ROB to the reservation stations and the register file.
  * You have to design the policy to resolve contention between the ROB and the WB stage on the CDB busses.
  */
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Set;
+
 public class ROB {
     /**      Busy   Instruction[]   State   Dest    Value
      * ROB0   no    fld F6，34（R2） Commit    F6      xxx
@@ -63,18 +66,22 @@ public class ROB {
     }
 
     public void issue(String[] instruction) {
+        String ops = instruction[0];
         first = false;
         busy[tail] = true;
         for(int i = 0;i<4;i++) {
             instructions[tail][i] = instruction[i];
         }
         state[tail] = 'i';
-        dest[tail] = Integer.parseInt(instruction[1].substring(1));
+        if(DecodeUnit.Write_Ops.contains(ops)) {
+            dest[tail] = Integer.parseInt(instruction[1].substring(1));
+        }
         tail++;
         tail = tail%NR;
     }
 
     /**
+     * Return:
      * [0,0]: can load from memory
      * [1,value]: can load from ROB
      * [2,0] : can not load
@@ -112,24 +119,41 @@ public class ROB {
         store_ROB.put(ROBnumber,new StoreTuple(address,value));
     }
 
-    /**
-     * Allow Other Parts to Change State
-     */
+    /* Allow Other Parts to Change State */
     public static void SetState(int ROBnumber,char s){
         state[ROBnumber] = s;
     }
 
-
-
     /**
      * For each instruction, there is three types of commitment
-     * 1. Normal Commit
+     * 1. Normal Commit : add, addi, fadd, fsub, fmul, fdiv fld
      *      - Update the Register
-     * 2. Store commit
-     * 3. Branch Prediction
+     * 2. Store commit : fsd
+     *      - Update the Memory
+     * 3. Branch Prediction (bne)
      */
-    public void Commit(){
+    public final static Set<String> Normal_Ops = Collections.unmodifiableSet(Set.of("add","addi","fld","fadd","fsub","fmul","fdiv"));
 
+    public void Commit(){
+        for(int i = 0;i<NR;i++){
+            if(busy[head] && state[head] == 'w'){
+                String ops = instructions[head][0];
+                if(Normal_Ops.contains(ops)){
+                    RegisterFile.update(dest[head],head,dest_value[head]);
+                    CDB.remove(head);
+                    busy[head] = false;
+                    state[head] = 'c';
+                }else if(ops.equals("fsd")){
+                    // Store commit :
+
+                }else{
+                    // Branch prediction.
+                }
+            }else{
+                return;
+            }
+
+        }
     }
 
 }

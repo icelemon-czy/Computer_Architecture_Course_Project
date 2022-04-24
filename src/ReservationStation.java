@@ -147,28 +147,36 @@ public class ReservationStation {
                 // Check if we are stalled
                 /* If we are stalled, then watch CDB */
                 /* the other reservation stations are still producing the source operands*/
-                if(modej[current_execute] == 1){
-                    // Watch CDB
-                    if(CDB.hasValue(Qj[current_execute])){
-                        // CDB has the Value therefore we get value from CDB
-                        modej[current_execute] = 0;
-                        Vj[current_execute] = CDB.get(Qj[current_execute]);
-                    }else{
-                        return;
-                    }
-                }
-                if(ops[current_execute].equals("add")){
-                    if(modek[current_execute] == 1){
-                        // Watch CDB
-                        if(CDB.hasValue(Qk[current_execute])){
-                            // CDB has the Value therefore we get value from CDB
-                            modek[current_execute] = 0;
-                            Vk[current_execute] = CDB.get(Qk[current_execute]);
-                        }else {
-                            return;
+                for(int i = 0;i<number;i++){
+                    int k = (current_execute + i)%number;
+                    if(busy[k]){
+                        if(modej[k] == 1){
+                            // Watch CDB
+                            if(CDB.hasValue(Qj[k])){
+                                // CDB has the Value therefore we get value from CDB
+                                modej[k] = 0;
+                                Vj[k] = CDB.get(Qj[k]);
+                            }else {
+                                return;
+                            }
                         }
+                        if(ops[k].equals("add")){
+                            if(modek[k] == 1){
+                                // Watch CDB
+                                if(CDB.hasValue(Qk[k])){
+                                    // CDB has the Value therefore we get value from CDB
+                                    modek[k] = 0;
+                                    Vk[k] = CDB.get(Qk[k]);
+                                }else {
+                                    return;
+                                }
+                            }
+                        }
+                    }else{
+                        break;
                     }
                 }
+
                 /* Then start to execute */
                 if(waiting_cycle[current_execute]>0) {
                     waiting_cycle[current_execute]--;
@@ -321,22 +329,28 @@ public class ReservationStation {
         public void execute(){
             if(one_execute) {
                 ROB.SetState(dest[current_execute], 'e');
+                for(int i = 0;i<number;i++){
+                    int k = (current_execute + i)%number;
+                    if(busy[k]){
+                        if(modej[k] == 1){
+                            if(CDB.hasValue(Qj[k])){
+                                modej[k] = 0;
+                                Vj[k] = CDB.get(Qj[k]);
+                            }else{
+                                return;
+                            }
+                        }
 
-                if(modej[current_execute] == 1){
-                    if(CDB.hasValue(Qj[current_execute])){
-                        modej[current_execute] = 0;
-                        Vj[current_execute] = CDB.get(Qj[current_execute]);
+                        if(modek[k] == 1){
+                            if(CDB.hasValue(Qk[k])){
+                                modek[k] = 0;
+                                Vk[k] = CDB.get(Qk[k]);
+                            }else{
+                                return;
+                            }
+                        }
                     }else{
-                        return;
-                    }
-                }
-
-                if(modek[current_execute] == 1){
-                    if(CDB.hasValue(Qk[current_execute])){
-                        modek[current_execute] = 0;
-                        Vk[current_execute] = CDB.get(Qk[current_execute]);
-                    }else{
-                        return;
+                        break;
                     }
                 }
                 /* Then start to execute */
@@ -479,23 +493,31 @@ public class ReservationStation {
             if(one_execute) {
                 ROB.SetState(dest[current_execute], 'e');
 
-                if(modej[current_execute] == 1){
-                    if(CDB.hasValue(Qj[current_execute])){
-                        modej[current_execute] = 0;
-                        Vj[current_execute] = CDB.get(Qj[current_execute]);
+                for(int i = 0;i<number;i++){
+                    int k = (current_execute + i)%number;
+                    if(busy[k]){
+                        if(modej[k] == 1){
+                            if(CDB.hasValue(Qj[k])){
+                                modej[k] = 0;
+                                Vj[k] = CDB.get(Qj[k]);
+                            }else{
+                                return;
+                            }
+                        }
+
+                        if(modek[k] == 1){
+                            if(CDB.hasValue(Qk[k])){
+                                modek[k] = 0;
+                                Vk[k] = CDB.get(Qk[k]);
+                            }else{
+                                return;
+                            }
+                        }
                     }else{
-                        return;
+                        break;
                     }
                 }
 
-                if(modek[current_execute] == 1){
-                    if(CDB.hasValue(Qk[current_execute])){
-                        modek[current_execute] = 0;
-                        Vk[current_execute] = CDB.get(Qk[current_execute]);
-                    }else{
-                        return;
-                    }
-                }
                 /* Then start to execute */
                 if(waiting_cycle[current_execute]>0) {
                     waiting_cycle[current_execute]--;
@@ -630,23 +652,29 @@ public class ReservationStation {
         public void execute(){
             if(one_execute) {
                 ROB.SetState(dest[current_execute], 'e');
-                if(modej[current_execute] == 1){
-                    if(CDB.hasValue(Qj[current_execute])){
-                        modej[current_execute] = 0;
-                        Vj[current_execute] = CDB.get(Qj[current_execute]);
+                for(int i = 0;i<number;i++){
+                    int k = (current_execute + i)%number;
+                    if(busy[k]){
+                        if(modej[k] == 1){
+                            if(CDB.hasValue(Qj[k])){
+                                modej[k] = 0;
+                                Vj[k] = CDB.get(Qj[k]);
+                            }else{
+                                return;
+                            }
+                        }
+                        if(modek[k] == 1){
+                            if(CDB.hasValue(Qk[k])){
+                                modek[k] = 0;
+                                Vk[k] = CDB.get(Qk[k]);
+                            }else{
+                                return;
+                            }
+                        }
                     }else{
-                        return;
+                        break;
                     }
                 }
-                if(modek[current_execute] == 1){
-                    if(CDB.hasValue(Qk[current_execute])){
-                        modek[current_execute] = 0;
-                        Vk[current_execute] = CDB.get(Qk[current_execute]);
-                    }else{
-                        return;
-                    }
-                }
-
                 /* Then start to execute */
                 if(waiting_cycle[current_execute]>0) {
                     waiting_cycle[current_execute]--;
@@ -806,28 +834,36 @@ public class ReservationStation {
                 // Check if we are stalled
                 /* If we are stalled, then watch CDB */
                 /* the other reservation stations are still producing the source operands*/
-                if(modej[current_execute] == 1){
-                    // Watch CDB
-                    if(CDB.hasValue(Qj[current_execute])){
-                        // CDB has the Value therefore we get value from CDB
-                        modej[current_execute] = 0;
-                        Vj[current_execute] = CDB.get(Qj[current_execute]);
-                    }else{
-                        return;
-                    }
-                }
-                if(ops[current_execute].equals("fsd")){
-                    if(modek[current_execute] == 1){
-                        // Watch CDB
-                        if(CDB.hasValue(Qk[current_execute])){
-                            // CDB has the Value therefore we get value from CDB
-                            modek[current_execute] = 0;
-                            Vk[current_execute] = CDB.get(Qk[current_execute]);
-                        }else {
-                            return;
+                for(int i = 0;i<number;i++){
+                    int k = (current_execute + i)%number;
+                    if(busy[k]){
+                        if(modej[k] == 1){
+                            // Watch CDB
+                            if(CDB.hasValue(Qj[k])){
+                                // CDB has the Value therefore we get value from CDB
+                                modej[k] = 0;
+                                Vj[k] = CDB.get(Qj[k]);
+                            }else{
+                                return;
+                            }
                         }
+                        if(ops[k].equals("fsd")){
+                            if(modek[k] == 1){
+                                // Watch CDB
+                                if(CDB.hasValue(Qk[k])){
+                                    // CDB has the Value therefore we get value from CDB
+                                    modek[k] = 0;
+                                    Vk[k] = CDB.get(Qk[k]);
+                                }else {
+                                    return;
+                                }
+                            }
+                        }
+                    }else{
+                        break;
                     }
                 }
+
                 /* Then start to execute */
                 if(waiting_cycle[current_execute]>0) {
                     waiting_cycle[current_execute]--;
