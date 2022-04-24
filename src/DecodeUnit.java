@@ -18,10 +18,8 @@ public class DecodeUnit {
     int NF;
     LinkedList<String> undecode_instructions;
     HashSet<String> ops;
-    RegisterFile rf;
     InstructionQueue IQ;
-    public DecodeUnit(RegisterFile rf,int NF,InstructionQueue IQ){
-        this.rf  = rf;
+    public DecodeUnit(int NF,InstructionQueue IQ){
         this.NF = NF;
         this.IQ = IQ;
         undecode_instructions = new LinkedList<>();
@@ -70,29 +68,34 @@ public class DecodeUnit {
         return RegisterRename(instructions);
     }
 
+    /**
+     * TreeSet<Integer> freeList;
+     * HashMap<String, String> maptable;
+     */
     public String[] RegisterRename(String[] instructions){
         String ops = instructions[0];
         //For the first register
         String ArchitectedRegister = instructions[1];
         // Assign a free physical register to Architected Register if it does not original in map table
-        if (!rf.maptable.containsKey(ArchitectedRegister)) {
-            int freeregister = rf.freeList.iterator().next();
-            rf.freeList.remove(freeregister);
-            LinkedList<String> physicalregisters = new LinkedList<>();
+        if (!RegisterFile.maptable.containsKey(ArchitectedRegister)) {
+            int freeregister = RegisterFile.freeList.iterator().next();
+            RegisterFile.freeList.remove(freeregister);
             instructions[1] = "p"+ freeregister;
-            physicalregisters.add(instructions[1]);
-            rf.maptable.put(ArchitectedRegister, physicalregisters);
+            RegisterFile.maptable.put(ArchitectedRegister, instructions[1]);
         }else{
             // Check the instruction, whether we update the value (W)
             if(Write_Ops.contains(ops)){
                 // If ops is one of write ops, get free register and add to map table
-                int freeregister = rf.freeList.iterator().next();
-                rf.freeList.remove(freeregister);
+                // The original physical register can added back to free list
+                int pregister = Integer.parseInt(RegisterFile.maptable.get(ArchitectedRegister).substring(1));
+                int freeregister = RegisterFile.freeList.iterator().next();
+                RegisterFile.freeList.remove(freeregister);
+                RegisterFile.freeList.add(pregister);
                 instructions[1] = "p" + freeregister;
-                rf.maptable.get(ArchitectedRegister).addFirst(instructions[1]);
+                RegisterFile.maptable.put(ArchitectedRegister, instructions[1]);
             }else{
                 // If the ops is read ops,like fsd and bne, assign the register from the last ops.
-                instructions[1] = rf.maptable.get(ArchitectedRegister).getFirst();
+                instructions[1] = RegisterFile.maptable.get(ArchitectedRegister);
             }
         }
 
@@ -101,15 +104,13 @@ public class DecodeUnit {
             if(isRegister(instructions[i])){
                 ArchitectedRegister = instructions[i];
                 // Assign a free physical register to Architected Register if it does not original in map table
-                if(!rf.maptable.containsKey(ArchitectedRegister)){
-                    int freeregister = rf.freeList.iterator().next();
-                    rf.freeList.remove(freeregister);
-                    LinkedList<String> physicalregisters = new LinkedList<>();
+                if(!RegisterFile.maptable.containsKey(ArchitectedRegister)){
+                    int freeregister = RegisterFile.freeList.iterator().next();
+                    RegisterFile.freeList.remove(freeregister);
                     instructions[i] = "p"+ freeregister;
-                    physicalregisters.add(instructions[i]);
-                    rf.maptable.put(ArchitectedRegister,physicalregisters);
+                    RegisterFile.maptable.put(ArchitectedRegister,instructions[1]);
                 }else{
-                    instructions[i] = rf.maptable.get(ArchitectedRegister).getFirst();
+                    instructions[i] = RegisterFile.maptable.get(ArchitectedRegister);
                 }
             }
         }
@@ -127,10 +128,10 @@ public class DecodeUnit {
         return true;
     }
 
-    public static void main(String[] args){
+    //public static void main(String[] args){
         //System.out.println(isRegister("F2"));
         //System.out.println(isRegister("100"));
-    }
+    //}
 
 
 }

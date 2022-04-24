@@ -1,17 +1,27 @@
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.io.*;
+import java.util.TreeSet;
+
 public class InstructionUnit{
-    int pc;
-    int NF;
+    public static int pc = 0;
+    public static int NF;
     InstructionCache instructioncache;
     DecodeUnit decodeunit;
     BranchPredictor branchpredictor;
-    BranchTargetBuffer branchtargetbuffer;
-    public InstructionUnit(int NF,InstructionCache instructionCache,DecodeUnit decodeUnit,BranchPredictor branchPredictor,BranchTargetBuffer branchTargetBuffer){
-        pc = 0;
-        this.NF = NF;
+    /*It records the pc we might recover if we take the wrong branch.*/
+    public static LinkedList<Integer> OtherPC = new LinkedList<>();
+    /*It records the decision we have made*/
+    public static LinkedList<Integer> decision = new LinkedList<>();
+    /*Records the Map table and free list*/
+    public static LinkedList<TreeSet<Integer>> freeLists;
+    public static LinkedList<HashMap<String, String>> maptables;
+
+    public InstructionUnit(InstructionCache instructionCache,DecodeUnit decodeUnit,BranchPredictor branchPredictor) throws FileNotFoundException, IOException{
+        NF = Simulator.getProperty("NF");
         instructioncache = instructionCache;
         decodeunit = decodeUnit;
         branchpredictor = branchPredictor;
-        branchtargetbuffer = branchTargetBuffer;
     }
 
     /**
@@ -25,7 +35,6 @@ public class InstructionUnit{
      */
     public boolean fetch(){
         for(int i = 0;i<NF;i++){
-            // TODO whether we finish the instruction.
             String instruction = instructioncache.get(pc);
             if(instruction.length() == 0){
                 return false;
@@ -34,14 +43,28 @@ public class InstructionUnit{
             if(instruction.charAt(0) == 'b'){
                 // Update PC based on Branch Predictor
                 int taken = branchpredictor.predict();
+                String target = instruction.split(",")[2].trim();
                 if(taken == 0 ){
                     // Not Taken
                     pc = pc+4;
+                    decision.add(0);
+                    OtherPC.add(BranchTargetBuffer.getAddress(target));
                 }else{
                     // Take the Branch
-                    String target = instruction.split(",")[2].trim();
-                    pc = branchtargetbuffer.getAddress(target);
+                    pc = BranchTargetBuffer.getAddress(target);
+                    decision.add(1);
+                    OtherPC.add(pc+4);
                 }
+                TreeSet<Integer> freelistcp = new TreeSet<>();
+                for(Integer fr : RegisterFile.freeList){
+                    freelistcp.add(fr);
+                }
+                freeLists.add(freelistcp);
+                HashMap<String,String> maptablecp = new HashMap<>();
+                for(String ar : RegisterFile.maptable.keySet()){
+                    maptablecp.put(ar,RegisterFile.maptable.get(ar));
+                }
+                maptables.add(maptablecp);
             }else{
                 pc = pc+4;
             }
@@ -50,10 +73,4 @@ public class InstructionUnit{
         }
         return true;
     }
-
-    /**
-     * If ROB find out
-     */
-
-
 }

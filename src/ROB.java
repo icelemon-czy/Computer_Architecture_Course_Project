@@ -4,9 +4,7 @@
  * connecting the WB stage and the ROB to the reservation stations and the register file.
  * You have to design the policy to resolve contention between the ROB and the WB stage on the CDB busses.
  */
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 
 public class ROB {
     /**      Busy   Instruction[]   State   Dest    Value
@@ -133,8 +131,10 @@ public class ROB {
      * 3. Branch Prediction (bne)
      */
     public final static Set<String> Normal_Ops = Collections.unmodifiableSet(Set.of("add","addi","fld","fadd","fsub","fmul","fdiv"));
-
-    public void Commit(){
+    public boolean Commit(){
+        if(!busy[head]){
+            return false;
+        }
         for(int i = 0;i<NR;i++){
             if(busy[head] && state[head] == 'w'){
                 String ops = instructions[head][0];
@@ -143,17 +143,62 @@ public class ROB {
                     CDB.remove(head);
                     busy[head] = false;
                     state[head] = 'c';
+                    head ++;
                 }else if(ops.equals("fsd")){
-                    // Store commit :
-
+                    // Store commit
+                    int address = store_ROB.get(head).address;
+                    double value = store_ROB.get(head).value;
+                    MemoryUnit.store(address,value);
+                    CDB.remove(head);
+                    busy[head] = false;
+                    state[head] = 'c';
+                    head ++;
                 }else{
                     // Branch prediction.
+                    /*0 not take 1 take*/
+                    int take = InstructionUnit.decision.removeFirst();
+                    int recoverypc = InstructionUnit.OtherPC.removeFirst();
+                    TreeSet<Integer> recoveryfreelist = InstructionUnit.freeLists.removeFirst();
+                    HashMap<String,String> recoverymap = InstructionUnit.maptables.removeFirst();
+                    int predict = (int) dest_value[head];
+                    if(take == predict){
+                        // success predict
+                        busy[head] = false;
+                        state[head] = 'c';
+                        head++;
+                    }else{
+                        // Unsuccessfully predict
+                        BranchPredictor.change_state();
+                        InstructionUnit.pc = recoverypc;
+                        /*Flush Everything in ROB*/
+                        first = true;
+                        busy = new boolean[NR];
+                        state = new char[NR];
+                        instructions = new String[NR][4];
+                        dest = new int[NR];
+                        dest_value = new double[NR];
+                        head++;
+                        tail = head;
+                        /* CDB*/
+                        CDB.cdb = new HashMap<>();
+                        /* Register File */
+                        RegisterFile.RegisterStatus = new int[RegisterFile.R];
+                        for(int r = 0;r<RegisterFile.R;r++){
+                            RegisterFile.RegisterStatus[r] = -1;
+                        }
+                        /* Reservation Station */
+                        ReservationStation.flush();
+                        /*Register Renaming*/
+                        RegisterFile.maptable = recoverymap;
+                        RegisterFile.freeList = recoveryfreelist;
+                    }
                 }
             }else{
-                return;
+                return true;
             }
 
         }
+        return true;
     }
 
 }

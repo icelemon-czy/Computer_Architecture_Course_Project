@@ -6,14 +6,11 @@
  */
 import java.util.HashMap;
 public class MemoryUnit {
-    static HashMap<Integer,Integer> memorycontent;
-    public MemoryUnit(){
-        memorycontent = new HashMap<>();
-    }
-    public static void store(int address,int value){
+    public static HashMap<Integer,Double> memorycontent = new HashMap<>();
+    public static void store(int address,double value){
         memorycontent.put(address,value);
     }
-    public static int load(int address){
+    public static double load(int address){
         return memorycontent.get(address);
     }
 

@@ -44,29 +44,41 @@ public class Simulator {
         //int NB = Integer.parseInt(properties.getProperty("NB"));
         //int NR = Integer.parseInt(properties.getProperty("NR"));
 
-        MemoryUnit memoryUnit = new MemoryUnit();
         InstructionCache instructionCache = new InstructionCache();
-        RegisterFile registerFile = new RegisterFile();
         ROB rob = new ROB();
-        ReservationStation reservationStation = new ReservationStation(registerFile);
-        InstructionQueue instructionQueue = new InstructionQueue(NW,rob,reservationStation);
+        ReservationStation reservationStation = new ReservationStation();
+        InstructionQueue instructionQueue = new InstructionQueue(NW,rob);
         BranchTargetBuffer branchTargetBuffer = new BranchTargetBuffer();
         BranchPredictor branchPredictor = new BranchPredictor();
-        DecodeUnit decodeUnit = new DecodeUnit(registerFile,NF,instructionQueue);
-        InstructionUnit instructionUnit = new InstructionUnit(NF,instructionCache,decodeUnit,branchPredictor,branchTargetBuffer);
+        DecodeUnit decodeUnit = new DecodeUnit(NF,instructionQueue);
+        InstructionUnit instructionUnit = new InstructionUnit(instructionCache,decodeUnit,branchPredictor);
 
-        ReadProgram("src/prog.dat", memoryUnit,instructionCache,branchTargetBuffer);
+        ReadProgram("src/prog.dat", instructionCache,branchTargetBuffer);
         /**
         memoryUnit.display();
         branchTargetBuffer.display();
         instructionCache.display();
-        */
+         **/
 
-        for(int cycle = 0;cycle<2;cycle++){
-            instructionUnit.fetch();
-            decodeUnit.decode();
+        int cycle = 0;
+
+        while(true){
+            cycle ++;
+            // Commit
+            boolean commitsuccess = rob.Commit();
+            // WriteBack
+            reservationStation.WB();
+            // Execution
+            reservationStation.EXE();
+            // Issue
             instructionQueue.dispatch();
+            boolean fetchsuccess = instructionUnit.fetch();
+            decodeUnit.decode();
+            if(!commitsuccess && !fetchsuccess){
+                break;
+            }
         }
+        System.out.println(cycle);
         /**
         for(String s :registerFile.maptable.keySet()){
             System.out.println(s);
@@ -85,7 +97,7 @@ public class Simulator {
      * 2. Get all instructions and corresponding address.
      * 3. Get Branch Target Buffer
      */
-    public static void ReadProgram(String inputfile, MemoryUnit memoryUnit,InstructionCache instructionCache,BranchTargetBuffer branchTargetBuffer)
+    public static void ReadProgram(String inputfile,InstructionCache instructionCache,BranchTargetBuffer branchTargetBuffer)
             throws FileNotFoundException{
         File file = new File(inputfile);
         Scanner scnr = new Scanner(file);
@@ -102,7 +114,7 @@ public class Simulator {
                 if('0'<=line.charAt(0) && line.charAt(0) <='9'){
                     int address  = Integer.parseInt(line.split(",")[0].trim());
                     int value = Integer.parseInt(line.split(",")[1].trim());
-                    memoryUnit.store(address,value);
+                    MemoryUnit.store(address,value);
                 }else{
                     // Get Instructions and its address
                     // First We check whether starts with Target Label, If true Then we store Target into BTB

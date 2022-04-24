@@ -6,7 +6,7 @@
  */
 import java.util.HashMap;
 public class BranchTargetBuffer {
-    static HashMap<String,Integer> branchTarget;
+    public static HashMap<String,Integer> branchTarget;
     public BranchTargetBuffer(){
         branchTarget = new HashMap<>();
     }

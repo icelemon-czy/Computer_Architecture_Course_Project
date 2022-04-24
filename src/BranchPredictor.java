@@ -1,5 +1,4 @@
 import java.util.LinkedList;
-
 /**
  *   BHT/BTB:
  *   1-bit dynamic branch predictor (initialized to predict not taken) with 16-entry branch target buffer (BTB) is used.
@@ -10,7 +9,7 @@ public  class BranchPredictor{
     // One bit dynamic branch predictor
     // 0- Not take  (initialized to predict not taken)
     // 1 -take
-    private int predictor;
+    private static int predictor;
     private LinkedList<Integer> prediction;
     public BranchPredictor(){
         predictor = 0;
@@ -20,10 +19,8 @@ public  class BranchPredictor{
         prediction.add(predictor);
         return predictor;
     }
-    public void change_state(int result){
-        if(result != predictor){
-            predictor = 1-predictor;
-        }
+    public static void change_state(){
+        predictor = 1-predictor;
     }
 
 }

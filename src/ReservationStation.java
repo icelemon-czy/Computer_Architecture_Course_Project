@@ -8,10 +8,9 @@
  *  FPdiv        8 (non-pipelined FP divide)                 2                              fdiv
  *  BU           1 (condition and target evaluation)         1                              bne
  */
-import java.util.HashMap;
 public class ReservationStation {
 
-    public class INT{
+    public static class INT{
         final int latency = 1;
         final int number = 4;
         boolean[] busy;
@@ -42,6 +41,9 @@ public class ReservationStation {
         double[] dest_value;
 
         public INT(){
+            flush();
+        }
+        public void flush(){
             busy = new boolean[number];
             ops = new String[number];
             modej = new int[number];
@@ -224,7 +226,7 @@ public class ReservationStation {
         }
     }
 
-    public class FPadd{
+    public static class FPadd{
         int latency = 3;
         int number = 3;
 
@@ -253,6 +255,9 @@ public class ReservationStation {
         double[] dest_value;
 
         public FPadd(){
+            flush();
+        }
+        public void flush(){
             busy = new boolean[number];
             ops = new String[number];
             modej = new int[number];
@@ -391,7 +396,7 @@ public class ReservationStation {
         }
     }
 
-    public class FPmult{
+    public static class FPmult{
         int latency  = 4;
         int number = 4;
 
@@ -418,6 +423,10 @@ public class ReservationStation {
         double[] dest_value;
 
         public FPmult(){
+            flush();
+        }
+
+        public void flush(){
             busy = new boolean[number];
             modej = new int[number];
             modek = new int[number];
@@ -552,7 +561,7 @@ public class ReservationStation {
         }
     }
 
-    public class FPdiv {
+    public static class FPdiv {
         int latency = 8;
         int number = 2;
         boolean[] busy;
@@ -578,6 +587,10 @@ public class ReservationStation {
         double[] dest_value;
 
         public FPdiv(){
+            flush();
+        }
+
+        public void flush(){
             busy = new boolean[number];
             modej = new int[number];
             modek = new int[number];
@@ -708,7 +721,7 @@ public class ReservationStation {
         }
     }
 
-    public class LoadStoreBuffer{
+    public static class LoadStoreBuffer{
         int latency = 1;// one cycle for address calculation one cycle for memory access
         int number = 2;
         int number_load;
@@ -742,6 +755,10 @@ public class ReservationStation {
         double[] dest_value;
 
         public LoadStoreBuffer(){
+            flush();
+        }
+
+        public void flush(){
             number_load = 0;
             number_store = 0;
             busy = new boolean[number];
@@ -928,7 +945,7 @@ public class ReservationStation {
         }
     }
 
-    public class BU{
+    public static class BU{
         int latency = 1;
         int number = 1;
         int remaincycle = 1;
@@ -951,12 +968,16 @@ public class ReservationStation {
         double immediate;
 
         //Destination example: ROB4
-        // If dest value = 1 Then it is equal
-        // otherwise (0) not equal
+        // If dest value = 0 Then it is equal (Not take the branch)
+        // otherwise 1 not equal (Take the branch)
         int dest;
         double dest_value;
 
         public BU(){
+            flush();
+        }
+
+        public void flush(){
             busy = false;
             modej = 0;
             modek = 0;
@@ -1037,9 +1058,9 @@ public class ReservationStation {
             if(busy) {
                 if(remaincycle == 0 && !CDB.isfull()){
                     if(Vj == Vk) {
-                        dest_value = 1;
+                        dest_value = 0;
                     }else{
-                        dest_value  =0;
+                        dest_value  =1;
                     }
                     int rob = dest;
                     /* Also Send to ROB */
@@ -1052,25 +1073,27 @@ public class ReservationStation {
         }
     }
 
-
-    public boolean isImmediate(String s){
+    public static boolean isImmediate(String s){
         return s.charAt(0) == '$';
     }
 
-    INT INTRS;
-    LoadStoreBuffer LoadStoreRS;
-    FPadd FPaddRS;
-    FPmult FPmulRS;
-    FPdiv FPdivRS;
-    BU BURS;
+    public static INT INTRS = new INT();
+    public static LoadStoreBuffer LoadStoreRS = new LoadStoreBuffer();
+    public static FPadd FPaddRS = new FPadd();
+    public static FPmult FPmulRS = new FPmult();
+    public static FPdiv FPdivRS = new FPdiv();
+    public static BU BURS = new BU();
 
-    public ReservationStation(RegisterFile RF){
-        INTRS = new INT();
-        LoadStoreRS = new LoadStoreBuffer();
-        FPaddRS = new FPadd();
-        FPmulRS = new FPmult();
-        FPdivRS = new FPdiv();
-        BURS = new BU();
+    public ReservationStation(){
+    }
+
+    public static void flush(){
+        INTRS.flush();
+        LoadStoreRS.flush();
+        FPaddRS.flush();
+        FPmulRS.flush();
+        FPdivRS.flush();
+        BURS.flush();
     }
 
     public void EXE(){
@@ -1090,6 +1113,4 @@ public class ReservationStation {
         FPdivRS.writeback();
         BURS.writeback();
     }
-
-
 }

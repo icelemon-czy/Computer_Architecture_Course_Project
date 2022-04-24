@@ -1,8 +1,5 @@
 import java.util.HashMap;
 
-/**
- *
- */
 public class InstructionCache {
     int pc;
     HashMap<Integer,String> instrcutions;
