@@ -14,8 +14,8 @@ public class InstructionUnit{
     /*It records the decision we have made*/
     public static LinkedList<Integer> decision = new LinkedList<>();
     /*Records the Map table and free list*/
-    public static LinkedList<TreeSet<Integer>> freeLists;
-    public static LinkedList<HashMap<String, String>> maptables;
+    public static LinkedList<TreeSet<Integer>> freeLists = new LinkedList<>();
+    public static LinkedList<HashMap<String, String>> maptables = new LinkedList<>();
 
     public InstructionUnit(InstructionCache instructionCache,DecodeUnit decodeUnit,BranchPredictor branchPredictor) throws FileNotFoundException, IOException{
         NF = Simulator.getProperty("NF");

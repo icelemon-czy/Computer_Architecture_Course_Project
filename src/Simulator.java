@@ -46,13 +46,15 @@ public class Simulator {
 
         InstructionCache instructionCache = new InstructionCache();
         ROB rob = new ROB();
+        CDB cdb = new CDB();
+        RegisterFile rf = new RegisterFile();
+        MemoryUnit mu = new MemoryUnit();
         ReservationStation reservationStation = new ReservationStation();
         InstructionQueue instructionQueue = new InstructionQueue(NW,rob);
         BranchTargetBuffer branchTargetBuffer = new BranchTargetBuffer();
         BranchPredictor branchPredictor = new BranchPredictor();
         DecodeUnit decodeUnit = new DecodeUnit(NF,instructionQueue);
         InstructionUnit instructionUnit = new InstructionUnit(instructionCache,decodeUnit,branchPredictor);
-
         ReadProgram("src/prog.dat", instructionCache,branchTargetBuffer);
         /**
         memoryUnit.display();
