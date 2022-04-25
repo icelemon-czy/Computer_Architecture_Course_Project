@@ -41,6 +41,7 @@ public class RegisterFile{
     }
 
     public static void display(){
+        System.out.println("Register File(non-zero value):");
         for(int i = 0;i<R;i++){
             if(register_value[i] != 0){
                 System.out.println("p"+i+" : "+ register_value[i]);

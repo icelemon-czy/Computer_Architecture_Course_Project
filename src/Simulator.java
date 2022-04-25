@@ -53,7 +53,7 @@ public class Simulator {
         BranchPredictor branchPredictor = new BranchPredictor();
         DecodeUnit decodeUnit = new DecodeUnit(NF,instructionQueue);
         InstructionUnit instructionUnit = new InstructionUnit(instructionCache,decodeUnit,branchPredictor);
-        ReadProgram("src/prog2.dat", instructionCache,branchTargetBuffer);
+        ReadProgram("src/prog.dat", instructionCache,branchTargetBuffer);
 
         //branchTargetBuffer.display();
         //instructionCache.display();
@@ -80,7 +80,7 @@ public class Simulator {
                 break;
             }
             cycle ++;
-            RegisterFile.Mapdispaly();
+            // RegisterFile.Mapdispaly();
             CDB.display();
             rob.display();
         }
