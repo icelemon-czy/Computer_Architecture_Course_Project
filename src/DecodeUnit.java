@@ -65,7 +65,14 @@ public class DecodeUnit {
         }
         instructions[2] = component[1].trim();
         instructions[3] = component[2].trim();
-        return RegisterRename(instructions);
+        instructions = RegisterRename(instructions);
+        /**
+        for(String s:instructions){
+            System.out.print(s+" ");
+        }
+        System.out.println();
+         **/
+        return instructions;
     }
 
     /**
@@ -82,38 +89,48 @@ public class DecodeUnit {
             RegisterFile.freeList.remove(freeregister);
             instructions[1] = "p"+ freeregister;
             RegisterFile.maptable.put(ArchitectedRegister, instructions[1]);
+            RegisterFile.pregister_counter.put(instructions[1],1);
         }else{
             // Check the instruction, whether we update the value (W)
             if(Write_Ops.contains(ops)){
                 // If ops is one of write ops, get free register and add to map table
-                // The original physical register can added back to free list
-                int pregister = Integer.parseInt(RegisterFile.maptable.get(ArchitectedRegister).substring(1));
                 int freeregister = RegisterFile.freeList.iterator().next();
                 RegisterFile.freeList.remove(freeregister);
-                RegisterFile.freeList.add(pregister);
                 instructions[1] = "p" + freeregister;
                 RegisterFile.maptable.put(ArchitectedRegister, instructions[1]);
+                RegisterFile.pregister_counter.put(instructions[1],1);
             }else{
                 // If the ops is read ops,like fsd and bne, assign the register from the last ops.
                 instructions[1] = RegisterFile.maptable.get(ArchitectedRegister);
+                RegisterFile.pregister_counter.put(instructions[1],RegisterFile.pregister_counter.get(instructions[1])+1);
             }
         }
 
         // For the RAW we do nothing
         for(int i = 2;i<=3;i++){
-            if(isRegister(instructions[i])){
-                ArchitectedRegister = instructions[i];
-                // Assign a free physical register to Architected Register if it does not original in map table
-                if(!RegisterFile.maptable.containsKey(ArchitectedRegister)){
-                    int freeregister = RegisterFile.freeList.iterator().next();
-                    RegisterFile.freeList.remove(freeregister);
-                    instructions[i] = "p"+ freeregister;
-                    RegisterFile.maptable.put(ArchitectedRegister,instructions[1]);
-                }else{
-                    instructions[i] = RegisterFile.maptable.get(ArchitectedRegister);
+            if(!(ops.equals("bne") && i==3)) {
+                if (isRegister(instructions[i])) {
+                    ArchitectedRegister = instructions[i];
+                    // Assign a free physical register to Architected Register if it does not original in map table
+                    if (!RegisterFile.maptable.containsKey(ArchitectedRegister)) {
+                        int freeregister = RegisterFile.freeList.iterator().next();
+                        RegisterFile.freeList.remove(freeregister);
+                        instructions[i] = "p" + freeregister;
+                        RegisterFile.maptable.put(ArchitectedRegister, instructions[i]);
+                        RegisterFile.pregister_counter.put(instructions[i],1);
+                    } else {
+                        instructions[i] = RegisterFile.maptable.get(ArchitectedRegister);
+                        RegisterFile.pregister_counter.put(instructions[i],RegisterFile.pregister_counter.get(instructions[i])+1);
+                    }
                 }
             }
         }
+        /**
+        for(String s:instructions){
+            System.out.print(s+" ");
+        }
+        System.out.println();
+         **/
         return instructions;
     }
 
@@ -128,10 +145,11 @@ public class DecodeUnit {
         return true;
     }
 
-    //public static void main(String[] args){
-        //System.out.println(isRegister("F2"));
-        //System.out.println(isRegister("100"));
-    //}
+    public static void main(String[] args){
+        System.out.println(isRegister("F2"));
+        System.out.println(isRegister("100"));
+        System.out.println(isRegister("loop"));
+    }
 
 
 }

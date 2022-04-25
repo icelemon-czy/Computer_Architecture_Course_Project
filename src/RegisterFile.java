@@ -5,8 +5,9 @@ import java.util.TreeSet;
 public class RegisterFile{
     final static int R = 32;
     public static TreeSet<Integer> freeList = new TreeSet<>();
+    public static HashMap<String, String> maptable = new HashMap<>();
+    public static HashMap<String, Integer> pregister_counter = new HashMap<>();
 
-    public static HashMap<String, String> maptable = new HashMap<>();;
     // Physical Registers store the Actual Values registers(key: id,value: value of register(could be float))
     public static double[] register_value;
 
@@ -37,6 +38,5 @@ public class RegisterFile{
     public static void SetRegisterStatus(int register,int ROBNmber){
         RegisterStatus[register]  = ROBNmber;
     }
-
 
 }

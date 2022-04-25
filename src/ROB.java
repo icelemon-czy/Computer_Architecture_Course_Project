@@ -129,6 +129,9 @@ public class ROB {
      * 2. Store commit : fsd
      *      - Update the Memory
      * 3. Branch Prediction (bne)
+     *      - Flush everything
+     *
+     * For each physical register, add to freelist if no architecture register points to it
      */
     public final static Set<String> Normal_Ops = Collections.unmodifiableSet(Set.of("add","addi","fld","fadd","fsub","fmul","fdiv"));
     public boolean Commit(){
@@ -144,15 +147,40 @@ public class ROB {
                     busy[head] = false;
                     state[head] = 'c';
                     head ++;
+                    head = head%NR;
+                    for(String component : instructions[head]){
+                        if(RegisterFile.pregister_counter.containsKey(component)){
+                            int counter = RegisterFile.pregister_counter.get(component)-1;
+                            if(counter == 0){
+                                //Release the physical register to free list
+                                RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
+                            }else{
+                                RegisterFile.pregister_counter.put(component,counter);
+                            }
+
+                        }
+                    }
                 }else if(ops.equals("fsd")){
                     // Store commit
                     int address = store_ROB.get(head).address;
                     double value = store_ROB.get(head).value;
                     MemoryUnit.store(address,value);
-                    CDB.remove(head);
                     busy[head] = false;
                     state[head] = 'c';
                     head ++;
+                    head = head%NR;
+                    for(String component : instructions[head]){
+                        if(RegisterFile.pregister_counter.containsKey(component)){
+                            int counter = RegisterFile.pregister_counter.get(component)-1;
+                            if(counter == 0){
+                                //Release the physical register to free list
+                                RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
+                            }else{
+                                RegisterFile.pregister_counter.put(component,counter);
+                            }
+
+                        }
+                    }
                 }else{
                     // Branch prediction.
                     /*0 not take 1 take*/
@@ -166,10 +194,39 @@ public class ROB {
                         busy[head] = false;
                         state[head] = 'c';
                         head++;
+                        head = head%NR;
+                        for(String component : instructions[head]){
+                            if(RegisterFile.pregister_counter.containsKey(component)){
+                                int counter = RegisterFile.pregister_counter.get(component)-1;
+                                if(counter == 0){
+                                    //Release the physical register to free list
+                                    RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
+                                }else{
+                                    RegisterFile.pregister_counter.put(component,counter);
+                                }
+
+                            }
+                        }
                     }else{
                         // Unsuccessfully predict
                         BranchPredictor.change_state();
                         InstructionUnit.pc = recoverypc;
+                        for(int m =0;m<NR;m++){
+                            if(busy[m]){
+                                for(String component : instructions[m]){
+                                    if(RegisterFile.pregister_counter.containsKey(component)){
+                                        int counter = RegisterFile.pregister_counter.get(component)-1;
+                                        if(counter == 0){
+                                            //Release the physical register to free list
+                                            RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
+                                        }else{
+                                            RegisterFile.pregister_counter.put(component,counter);
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
                         /*Flush Everything in ROB*/
                         first = true;
                         busy = new boolean[NR];
@@ -178,6 +235,7 @@ public class ROB {
                         dest = new int[NR];
                         dest_value = new double[NR];
                         head++;
+                        head = head%NR;
                         tail = head;
                         /* CDB*/
                         CDB.cdb = new HashMap<>();
@@ -199,6 +257,17 @@ public class ROB {
 
         }
         return true;
+    }
+
+    public void display(){
+        for(int i = 0;i<NR;i++){
+            if(busy[(head+i)%NR]){
+                for(int k=0;k<4;k++) {
+                    System.out.print(instructions[head+i][k]+" ");
+                }
+                System.out.println(state[head]);
+            }
+        }
     }
 
 }

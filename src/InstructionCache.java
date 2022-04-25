@@ -13,7 +13,7 @@ public class InstructionCache {
 
     public String get(int pc){
         if(!instrcutions.containsKey(pc)){
-            return "";
+            return null;
         }
         return instrcutions.get(pc);
     }

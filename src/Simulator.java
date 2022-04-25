@@ -65,7 +65,7 @@ public class Simulator {
         int cycle = 0;
 
         while(true){
-            cycle ++;
+            System.out.println(cycle);
             // Commit
             boolean commitsuccess = rob.Commit();
             // WriteBack
@@ -79,14 +79,15 @@ public class Simulator {
             if(!commitsuccess && !fetchsuccess){
                 break;
             }
+            cycle ++;
+            /**
+            for(String s :RegisterFile.maptable.keySet()){
+                System.out.print(s+" ");
+                System.out.println(RegisterFile.maptable.get(s));
+            }
+            **/
+            rob.display();
         }
-        System.out.println(cycle);
-        /**
-        for(String s :registerFile.maptable.keySet()){
-            System.out.println(s);
-        }
-         **/
-
     }
 
 

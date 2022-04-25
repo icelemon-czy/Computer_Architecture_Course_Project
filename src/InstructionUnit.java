@@ -36,8 +36,12 @@ public class InstructionUnit{
     public boolean fetch(){
         for(int i = 0;i<NF;i++){
             String instruction = instructioncache.get(pc);
-            if(instruction.length() == 0){
-                return false;
+            if( instruction == null){
+                if(i == 0) {
+                    return false;
+                }else{
+                    return true;
+                }
             }
             // whether it is a branch instruction
             if(instruction.charAt(0) == 'b'){
