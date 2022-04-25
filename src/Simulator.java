@@ -41,8 +41,6 @@ public class Simulator {
 
         int NF = getProperty("NF");
         int NW = getProperty("NW");
-        //int NB = Integer.parseInt(properties.getProperty("NB"));
-        //int NR = Integer.parseInt(properties.getProperty("NR"));
 
         InstructionCache instructionCache = new InstructionCache();
         ROB rob = new ROB();
@@ -91,6 +89,7 @@ public class Simulator {
             CDB.display();
             rob.display();
         }
+        MemoryUnit.display();
     }
 
 

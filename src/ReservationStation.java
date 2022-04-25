@@ -522,11 +522,9 @@ public class ReservationStation {
 
         public void writeback(){
             if(one_execute&& ROB.state[dest[current_execute]] == 'e'){
-               // TODO CLEAN
                 System.out.println(CDB.isfull());
                 System.out.println(waiting_cycle[current_execute]);
                 if (waiting_cycle[current_execute] == 0 && !CDB.isfull()) {
-                    // TODO CLEAN System.out.println("HIT !!!!!!!!!!!!!!!!!!!!!!");
                     // Finish Execution
                     dest_value[current_execute] = Vj[current_execute] * Vk[current_execute];
                     int rob = dest[current_execute];

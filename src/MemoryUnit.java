@@ -19,7 +19,7 @@ public class MemoryUnit {
     }
 
     // Display everything inside memory unit, only for validation
-    public void display(){
+    public static void display(){
         System.out.println("Memory Content : ");
         for(int address: memorycontent.keySet()){
             System.out.println("Memory address: "+address + ",Value: "+memorycontent.get(address) );

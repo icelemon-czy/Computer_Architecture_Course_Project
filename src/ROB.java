@@ -134,13 +134,14 @@ public class ROB {
      * For each physical register, add to freelist if no architecture register points to it
      */
     public final static Set<String> Normal_Ops = Collections.unmodifiableSet(Set.of("add","addi","fld","fadd","fsub","fmul","fdiv"));
+
     public boolean Commit(){
         if(!busy[head]){
             return false;
         }
         for(int i = 0;i<NR;i++){
             if(busy[head] && state[head] == 'w'){
-                System.out.println("Commit!! " +head);
+                System.out.println("Commit " +head);
                 String ops = instructions[head][0];
                 if(Normal_Ops.contains(ops)){
                     RegisterFile.update(dest[head],head,dest_value[head]);
@@ -166,6 +167,7 @@ public class ROB {
                     int address = store_ROB.get(head).address;
                     double value = store_ROB.get(head).value;
                     MemoryUnit.store(address,value);
+                    store_ROB.remove(address);
                     busy[head] = false;
                     state[head] = 'c';
                     head ++;
@@ -215,6 +217,12 @@ public class ROB {
                         InstructionUnit.pc = recoverypc;
                         for(int m =0;m<NR;m++){
                             if(busy[m]){
+                                store_ROB.remove(m);
+                                for(int k= 0;k<RegisterFile.R;k++){
+                                    if(RegisterFile.RegisterStatus[k] == m){
+                                        RegisterFile.RegisterStatus[k] = -1;
+                                    }
+                                }
                                 for(String component : instructions[m]){
                                     if(RegisterFile.pregister_counter.containsKey(component)){
                                         int counter = RegisterFile.pregister_counter.get(component)-1;

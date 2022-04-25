@@ -3,7 +3,7 @@ import java.util.LinkedList;
 import java.util.TreeSet;
 
 public class RegisterFile{
-    final static int R = 1000;
+    final static int R = 64;
     public static TreeSet<Integer> freeList = new TreeSet<>();
     public static HashMap<String, String> maptable = new HashMap<>();
     public static HashMap<String, Integer> pregister_counter = new HashMap<>();
@@ -28,9 +28,9 @@ public class RegisterFile{
     }
 
     public static void update(int register, int ROBnumber,double value){
-        if(RegisterStatus[register] != ROBnumber){
-            System.err.println("Potential Error");
-        }
+        //if(RegisterStatus[register] != ROBnumber){
+         //   System.err.println("Potential Error");
+        //}
         RegisterStatus[register] = -1;
         register_value[register] = value;
     }
@@ -38,5 +38,6 @@ public class RegisterFile{
     public static void SetRegisterStatus(int register,int ROBNmber){
         RegisterStatus[register]  = ROBNmber;
     }
+
 
 }
