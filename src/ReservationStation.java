@@ -683,7 +683,9 @@ public class ReservationStation {
                 if(waiting_cycle[current_execute] ==0 && !CDB.isfull()){
                     // Finish Execution
                     dest_value[current_execute] = Vj[current_execute] / Vk[current_execute];
-
+                    System.out.println("HIT");
+                    System.out.println(Vj[current_execute]);
+                    System.out.println(Vk[current_execute]);
                     int rob =  dest[current_execute];
                     CDB.set(rob,dest_value[current_execute]);
                     /* Also Send to ROB */
@@ -933,7 +935,6 @@ public class ReservationStation {
         int latency = 1;
         int number = 1;
         int remaincycle = 1;
-
         boolean busy;
 
         // mode : 0: (Vj) register current hold the value,(Qj) 1: register value waiting in ROB 2: immediate Value

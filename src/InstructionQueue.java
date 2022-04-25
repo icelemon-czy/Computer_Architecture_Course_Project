@@ -6,7 +6,7 @@ import java.util.LinkedList;
  */
 public class InstructionQueue {
     int NW;
-    LinkedList<String[]> ready_instructions;
+    public static LinkedList<String[]> ready_instructions;
     ROB rob;
 
     public InstructionQueue(int NW,ROB rob){

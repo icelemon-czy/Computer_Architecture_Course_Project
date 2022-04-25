@@ -53,7 +53,7 @@ public class Simulator {
         BranchPredictor branchPredictor = new BranchPredictor();
         DecodeUnit decodeUnit = new DecodeUnit(NF,instructionQueue);
         InstructionUnit instructionUnit = new InstructionUnit(instructionCache,decodeUnit,branchPredictor);
-        ReadProgram("src/prog.dat", instructionCache,branchTargetBuffer);
+        ReadProgram("src/prog2.dat", instructionCache,branchTargetBuffer);
 
         //branchTargetBuffer.display();
         //instructionCache.display();
@@ -61,8 +61,8 @@ public class Simulator {
 
         int cycle = 0;
 
-        while(cycle<100){
-            System.out.println(cycle);
+        while(true){
+            System.out.println("Cycle " +cycle);
 
             // Commit
             boolean commitsuccess = rob.Commit();
@@ -80,16 +80,12 @@ public class Simulator {
                 break;
             }
             cycle ++;
-            /**
-            for(String s :RegisterFile.maptable.keySet()){
-                System.out.print(s+" ");
-                System.out.println(RegisterFile.maptable.get(s));
-            }
-             **/
+            RegisterFile.Mapdispaly();
             CDB.display();
             rob.display();
         }
         MemoryUnit.display();
+        RegisterFile.display();
     }
 
 
@@ -108,13 +104,14 @@ public class Simulator {
         Scanner scnr = new Scanner(file);
         int PC = 0;
         while(scnr.hasNextLine()){
-            String line = scnr.nextLine();
+            String line = scnr.nextLine().trim();
             /**
              *  Case 1.comment - start with %  skip
              *  Case 2.memory content
              *  Case 3.Instruction
              */
             if(!line.startsWith("%")){
+                System.out.println(line);
                 //Memory content
                 if('0'<=line.charAt(0) && line.charAt(0) <='9'){
                     int address  = Integer.parseInt(line.split(",")[0].trim());
@@ -134,6 +131,4 @@ public class Simulator {
             }
         }
     }
-
-
 }

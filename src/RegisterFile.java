@@ -1,4 +1,5 @@
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.TreeSet;
 
@@ -6,7 +7,7 @@ public class RegisterFile{
     final static int R = 64;
     public static TreeSet<Integer> freeList = new TreeSet<>();
     public static HashMap<String, String> maptable = new HashMap<>();
-    public static HashMap<String, Integer> pregister_counter = new HashMap<>();
+    public static HashSet<String> canfree_pregister = new HashSet<>();
 
     // Physical Registers store the Actual Values registers(key: id,value: value of register(could be float))
     public static double[] register_value;
@@ -37,6 +38,22 @@ public class RegisterFile{
 
     public static void SetRegisterStatus(int register,int ROBNmber){
         RegisterStatus[register]  = ROBNmber;
+    }
+
+    public static void display(){
+        for(int i = 0;i<R;i++){
+            if(register_value[i] != 0){
+                System.out.println("p"+i+" : "+ register_value[i]);
+            }
+        }
+    }
+
+    public static void Mapdispaly(){
+        System.out.println("Map:");
+        for(String s :RegisterFile.maptable.keySet()){
+            System.out.print(s+" ");
+            System.out.println(RegisterFile.maptable.get(s));
+        }
     }
 
 

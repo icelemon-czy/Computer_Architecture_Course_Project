@@ -89,10 +89,11 @@ public class DecodeUnit {
                         RegisterFile.freeList.remove(freeregister);
                         instructions[i] = "p" + freeregister;
                         RegisterFile.maptable.put(ArchitectedRegister, instructions[i]);
-                        RegisterFile.pregister_counter.put(instructions[i],1);
+                        // add R1 R2 R3
+                        // RegisterFile.canfree_pregister_counter.put(instructions[i],1);
                     } else {
                         instructions[i] = RegisterFile.maptable.get(ArchitectedRegister);
-                        RegisterFile.pregister_counter.put(instructions[i],RegisterFile.pregister_counter.get(instructions[i])+1);
+                        // RegisterFile.pregister_counter.put(instructions[i],RegisterFile.pregister_counter.get(instructions[i])+1);
                     }
                 }
             }
@@ -106,7 +107,7 @@ public class DecodeUnit {
             RegisterFile.freeList.remove(freeregister);
             instructions[1] = "p"+ freeregister;
             RegisterFile.maptable.put(ArchitectedRegister, instructions[1]);
-            RegisterFile.pregister_counter.put(instructions[1],1);
+            //RegisterFile.pregister_counter.put(instructions[1],1);
         }else{
             // Check the instruction, whether we update the value (W)
             if(Write_Ops.contains(ops)){
@@ -114,12 +115,13 @@ public class DecodeUnit {
                 int freeregister = RegisterFile.freeList.iterator().next();
                 RegisterFile.freeList.remove(freeregister);
                 instructions[1] = "p" + freeregister;
+                RegisterFile.canfree_pregister.add(RegisterFile.maptable.get(ArchitectedRegister));
                 RegisterFile.maptable.put(ArchitectedRegister, instructions[1]);
-                RegisterFile.pregister_counter.put(instructions[1],1);
+                // RegisterFile.pregister_counter.put(instructions[1],1);
             }else{
                 // If the ops is read ops,like fsd and bne, assign the register from the last ops.
                 instructions[1] = RegisterFile.maptable.get(ArchitectedRegister);
-                RegisterFile.pregister_counter.put(instructions[1],RegisterFile.pregister_counter.get(instructions[1])+1);
+                //RegisterFile.pregister_counter.put(instructions[1],RegisterFile.pregister_counter.get(instructions[1])+1);
             }
         }
 

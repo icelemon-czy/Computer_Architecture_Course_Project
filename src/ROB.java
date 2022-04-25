@@ -4,6 +4,8 @@
  * connecting the WB stage and the ROB to the reservation stations and the register file.
  * You have to design the policy to resolve contention between the ROB and the WB stage on the CDB busses.
  */
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 public class ROB {
@@ -27,7 +29,7 @@ public class ROB {
         }
     }
 
-    public static final int NR = 16;
+    public static int NR;
     public static int head;// Head is also a Pointer points to the next commit instruction.
     public static int tail;
     public boolean first;
@@ -41,7 +43,8 @@ public class ROB {
 
     /* Store ops ROB-Address-Value*/
     public static HashMap<Integer,StoreTuple> store_ROB = new HashMap<>();
-    public ROB(){
+    public ROB() throws FileNotFoundException, IOException {
+        NR = Simulator.getProperty("NR");
         first = true;
         head = 0;
         tail = 0;
@@ -50,6 +53,7 @@ public class ROB {
         instructions = new String[NR][4];
         dest = new int[NR];
         dest_value = new double[NR];
+
     }
 
     /* head ****** tail*/  /* tail ***  head*/
@@ -151,15 +155,8 @@ public class ROB {
                     head ++;
                     head = head%NR;
                     for(String component : instructions[head]){
-                        if(RegisterFile.pregister_counter.containsKey(component)){
-                            int counter = RegisterFile.pregister_counter.get(component)-1;
-                            if(counter == 0){
-                                //Release the physical register to free list
-                                RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
-                            }else{
-                                RegisterFile.pregister_counter.put(component,counter);
-                            }
-
+                        if(RegisterFile.canfree_pregister.contains(component)){
+                            RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
                         }
                     }
                 }else if(ops.equals("fsd")){
@@ -173,15 +170,8 @@ public class ROB {
                     head ++;
                     head = head%NR;
                     for(String component : instructions[head]){
-                        if(RegisterFile.pregister_counter.containsKey(component)){
-                            int counter = RegisterFile.pregister_counter.get(component)-1;
-                            if(counter == 0){
-                                //Release the physical register to free list
-                                RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
-                            }else{
-                                RegisterFile.pregister_counter.put(component,counter);
-                            }
-
+                        if(RegisterFile.canfree_pregister.contains(component)){
+                            RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
                         }
                     }
                 }
@@ -200,15 +190,8 @@ public class ROB {
                         head++;
                         head = head%NR;
                         for(String component : instructions[head]){
-                            if(RegisterFile.pregister_counter.containsKey(component)){
-                                int counter = RegisterFile.pregister_counter.get(component)-1;
-                                if(counter == 0){
-                                    //Release the physical register to free list
-                                    RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
-                                }else{
-                                    RegisterFile.pregister_counter.put(component,counter);
-                                }
-
+                            if(RegisterFile.canfree_pregister.contains(component)){
+                                RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
                             }
                         }
                     }else{
@@ -224,15 +207,8 @@ public class ROB {
                                     }
                                 }
                                 for(String component : instructions[m]){
-                                    if(RegisterFile.pregister_counter.containsKey(component)){
-                                        int counter = RegisterFile.pregister_counter.get(component)-1;
-                                        if(counter == 0){
-                                            //Release the physical register to free list
-                                            RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
-                                        }else{
-                                            RegisterFile.pregister_counter.put(component,counter);
-                                        }
-
+                                    if(RegisterFile.canfree_pregister.contains(component)){
+                                        RegisterFile.freeList.add(Integer.parseInt(component.substring(1)));
                                     }
                                 }
                             }
@@ -259,6 +235,7 @@ public class ROB {
                         /*Register Renaming*/
                         RegisterFile.maptable = recoverymap;
                         RegisterFile.freeList = recoveryfreelist;
+                        InstructionQueue.ready_instructions =new LinkedList<>();
                     }
                 }
             }else{
