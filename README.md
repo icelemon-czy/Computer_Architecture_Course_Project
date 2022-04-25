@@ -1,4 +1,5 @@
 # Computer_Architecture_Course_Project
+The description of project:
 From high level view, the project follows the following control flow - read script file program and a while loop to execute Tomasulo Algorithm.
 The read file program is aim to get the memory content and store in memory unit, get all instructions with corresponding address and store in instruction cache 
 and get all branch target with corresponding address and store in branch target buffer.
@@ -29,11 +30,11 @@ The second type is Store commit : fsd. The ROB will Update the Memory.
 The third type is Branch Prediction (bne), the ROB will flush everything. 
 It is worth to mention that, when branch predictor make its prediction, I will store the pc for another branch and also the snap shot of freelist and maptable in a linked list fashion.
 When my branch prediction is wrong, the first thing I do is recover from PC from otherway PC (the linked list data structure I mention above),
-and then the ROB will flush everything inside, the reservation station will flush everything, the Common data bus will flush everything.
+and then the ROB will flush everything inside, the reservation station will flush everything, the Common data bus will flush everything. 
 For freelist and maptable, they will recovery from the snapshot.
 
-
-
+How to run the project?
+Run the simulator.
 
 
 
