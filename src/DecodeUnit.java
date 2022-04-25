@@ -75,12 +75,7 @@ public class DecodeUnit {
         return instructions;
     }
 
-    /**
-     * TreeSet<Integer> freeList;
-     * HashMap<String, String> maptable;
-     */
     public String[] RegisterRename(String[] instructions){
-
         String ops = instructions[0];
         String ArchitectedRegister;
         // For the RAW we do nothing

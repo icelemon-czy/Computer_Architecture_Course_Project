@@ -82,7 +82,7 @@ public class ROB {
      * Return:
      * [0,0]: can load from memory
      * [1,value]: can load from ROB
-     * [2,0] : can not load
+     * [2,0] : can not load because of unknown address.
      */
     public static StoreTuple canload(int ROBnumber,int address){
         if(store_ROB.size()==0){
@@ -262,12 +262,6 @@ public class ROB {
                     }
                 }
             }else{
-                //System.out.print(busy[head]+" ");
-                //System.out.print(state[head]+" ");
-                //for(int l = 0;l<4;l++){
-                  //  System.out.print(instructions[head][l]+" ");
-                //}
-                //System.out.println();
                 return true;
             }
         }
