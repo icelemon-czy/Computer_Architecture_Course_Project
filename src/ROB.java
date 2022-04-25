@@ -34,7 +34,7 @@ public class ROB {
 
     /* ROB status Table*/
     public boolean[] busy;
-    public String[][] instructions;
+    public static String[][] instructions;
     public static char[] state;/* C:Commit, E:Execute, W: Write Results I:Issue*/
     public int[] dest; // dest: physical Register
     public static double[] dest_value;
@@ -140,6 +140,7 @@ public class ROB {
         }
         for(int i = 0;i<NR;i++){
             if(busy[head] && state[head] == 'w'){
+                System.out.println("Commit!! " +head);
                 String ops = instructions[head][0];
                 if(Normal_Ops.contains(ops)){
                     RegisterFile.update(dest[head],head,dest_value[head]);
@@ -181,7 +182,8 @@ public class ROB {
 
                         }
                     }
-                }else{
+                }
+                else{
                     // Branch prediction.
                     /*0 not take 1 take*/
                     int take = InstructionUnit.decision.removeFirst();
@@ -252,9 +254,14 @@ public class ROB {
                     }
                 }
             }else{
+                //System.out.print(busy[head]+" ");
+                //System.out.print(state[head]+" ");
+                //for(int l = 0;l<4;l++){
+                  //  System.out.print(instructions[head][l]+" ");
+                //}
+                //System.out.println();
                 return true;
             }
-
         }
         return true;
     }
@@ -262,10 +269,11 @@ public class ROB {
     public void display(){
         for(int i = 0;i<NR;i++){
             if(busy[(head+i)%NR]){
+                System.out.print((head +i)%NR + " ");
                 for(int k=0;k<4;k++) {
-                    System.out.print(instructions[head+i][k]+" ");
+                    System.out.print(instructions[(head +i)%NR][k]+" ");
                 }
-                System.out.println(state[head]);
+                System.out.println(state[(head +i)%NR]);
             }
         }
     }

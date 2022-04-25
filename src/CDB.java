@@ -29,4 +29,13 @@ public class CDB {
             return true;
         }
     }
+
+    public static void display(){
+        if(cdb.size()>0){
+            System.out.println("CDB");
+            for(Integer i : cdb.keySet()){
+                System.out.println(i + "  "+cdb.get(i));
+            }
+        }
+    }
 }

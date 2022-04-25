@@ -130,7 +130,7 @@ public class ReservationStation {
                 }
             }
             dest[current_assign] = ROBnumber;
-            ROB.SetState(dest[current_execute], 'i');
+            ROB.SetState(dest[current_assign], 'i');
             int dest_register =  Integer.parseInt(addinstruction[1].substring(1));
             RegisterFile.SetRegisterStatus(dest_register,ROBnumber);
         }
@@ -142,7 +142,7 @@ public class ReservationStation {
          *  when both in reservation station, execute;
          */
         public void execute(){
-            if(one_execute) {
+            if(one_execute && ( ROB.state[dest[current_execute]] == 'i' || ROB.state[dest[current_execute]] == 'e') ){
                 /* Change The State of the Instruction In ROB*/
                 ROB.SetState(dest[current_execute], 'e');
 
@@ -158,8 +158,6 @@ public class ReservationStation {
                                 // CDB has the Value therefore we get value from CDB
                                 modej[k] = 0;
                                 Vj[k] = CDB.get(Qj[k]);
-                            }else {
-                                return;
                             }
                         }
                         if(ops[k].equals("add")){
@@ -169,8 +167,6 @@ public class ReservationStation {
                                     // CDB has the Value therefore we get value from CDB
                                     modek[k] = 0;
                                     Vk[k] = CDB.get(Qk[k]);
-                                }else {
-                                    return;
                                 }
                             }
                         }
@@ -191,7 +187,7 @@ public class ReservationStation {
          * Mark reservation station available.
          */
         public void writeback(){
-            if(one_execute) {
+            if(one_execute&& ROB.state[dest[current_execute]] == 'e'){
                 if (waiting_cycle[current_execute] == 0 && !CDB.isfull()) {
                     // Finish Execution
                     if (ops[current_execute].equals("add")) {
@@ -326,13 +322,13 @@ public class ReservationStation {
             }
 
             dest[current_assign]  = ROBnumber;
-            ROB.SetState(dest[current_execute], 'i');
+            ROB.SetState(dest[current_assign], 'i');
             int dest_register =  Integer.parseInt(addinstruction[1].substring(1));
             RegisterFile.RegisterStatus[dest_register] = ROBnumber;
         }
 
         public void execute(){
-            if(one_execute) {
+            if(one_execute && ( ROB.state[dest[current_execute]] == 'i' || ROB.state[dest[current_execute]] == 'e') ){
                 ROB.SetState(dest[current_execute], 'e');
                 for(int i = 0;i<number;i++){
                     int k = (current_execute + i)%number;
@@ -341,8 +337,6 @@ public class ReservationStation {
                             if(CDB.hasValue(Qj[k])){
                                 modej[k] = 0;
                                 Vj[k] = CDB.get(Qj[k]);
-                            }else{
-                                return;
                             }
                         }
 
@@ -350,8 +344,6 @@ public class ReservationStation {
                             if(CDB.hasValue(Qk[k])){
                                 modek[k] = 0;
                                 Vk[k] = CDB.get(Qk[k]);
-                            }else{
-                                return;
                             }
                         }
                     }else{
@@ -366,7 +358,7 @@ public class ReservationStation {
         }
 
         public void writeback(){
-            if(one_execute) {
+            if(one_execute&& ROB.state[dest[current_execute]] == 'e'){
                 if (waiting_cycle[current_execute] == 0 && !CDB.isfull()) {
                     // Finish Execution
                     if (ops[current_execute].equals("fadd")) {
@@ -493,15 +485,14 @@ public class ReservationStation {
             }
 
             dest[current_assign]  = ROBnumber;
-            ROB.SetState(dest[current_execute], 'i');
+            ROB.SetState(dest[current_assign], 'i');
             int dest_register =  Integer.parseInt(addinstruction[1].substring(1));
             RegisterFile.RegisterStatus[dest_register] = ROBnumber;
         }
 
         public void execute(){
-            if(one_execute) {
+            if(one_execute && ( ROB.state[dest[current_execute]] == 'i' || ROB.state[dest[current_execute]] == 'e') ){
                 ROB.SetState(dest[current_execute], 'e');
-
                 for(int i = 0;i<number;i++){
                     int k = (current_execute + i)%number;
                     if(busy[k]){
@@ -509,8 +500,6 @@ public class ReservationStation {
                             if(CDB.hasValue(Qj[k])){
                                 modej[k] = 0;
                                 Vj[k] = CDB.get(Qj[k]);
-                            }else{
-                                return;
                             }
                         }
 
@@ -518,15 +507,12 @@ public class ReservationStation {
                             if(CDB.hasValue(Qk[k])){
                                 modek[k] = 0;
                                 Vk[k] = CDB.get(Qk[k]);
-                            }else{
-                                return;
                             }
                         }
                     }else{
                         break;
                     }
                 }
-
                 /* Then start to execute */
                 if(waiting_cycle[current_execute]>0) {
                     waiting_cycle[current_execute]--;
@@ -535,11 +521,14 @@ public class ReservationStation {
         }
 
         public void writeback(){
-            if(one_execute) {
+            if(one_execute&& ROB.state[dest[current_execute]] == 'e'){
+               // TODO CLEAN
+                System.out.println(CDB.isfull());
+                System.out.println(waiting_cycle[current_execute]);
                 if (waiting_cycle[current_execute] == 0 && !CDB.isfull()) {
+                    // TODO CLEAN System.out.println("HIT !!!!!!!!!!!!!!!!!!!!!!");
                     // Finish Execution
                     dest_value[current_execute] = Vj[current_execute] * Vk[current_execute];
-
                     int rob = dest[current_execute];
                     CDB.set(rob, dest_value[current_execute]);
                     /* Also Send to ROB */
@@ -657,13 +646,13 @@ public class ReservationStation {
             }
 
             dest[current_assign]  = ROBnumber;
-            ROB.SetState(dest[current_execute], 'i');
+            ROB.SetState(dest[current_assign], 'i');
             int dest_register =  Integer.parseInt(addinstruction[1].substring(1));
             RegisterFile.RegisterStatus[dest_register] = ROBnumber;
         }
 
         public void execute(){
-            if(one_execute) {
+            if(one_execute && ( ROB.state[dest[current_execute]] == 'i' || ROB.state[dest[current_execute]] == 'e') ){
                 ROB.SetState(dest[current_execute], 'e');
                 for(int i = 0;i<number;i++){
                     int k = (current_execute + i)%number;
@@ -672,16 +661,12 @@ public class ReservationStation {
                             if(CDB.hasValue(Qj[k])){
                                 modej[k] = 0;
                                 Vj[k] = CDB.get(Qj[k]);
-                            }else{
-                                return;
                             }
                         }
                         if(modek[k] == 1){
                             if(CDB.hasValue(Qk[k])){
                                 modek[k] = 0;
                                 Vk[k] = CDB.get(Qk[k]);
-                            }else{
-                                return;
                             }
                         }
                     }else{
@@ -696,7 +681,7 @@ public class ReservationStation {
         }
 
         public void writeback(){
-            if(one_execute) {
+            if(one_execute&& ROB.state[dest[current_execute]] == 'e'){
                 if(waiting_cycle[current_execute] ==0 && !CDB.isfull()){
                     // Finish Execution
                     dest_value[current_execute] = Vj[current_execute] / Vk[current_execute];
@@ -723,7 +708,7 @@ public class ReservationStation {
 
     public static class LoadStoreBuffer{
         int latency = 1;// one cycle for address calculation one cycle for memory access
-        int number = 2;
+        int number = 4;
         int number_load;
         int number_store;
 
@@ -806,6 +791,7 @@ public class ReservationStation {
             /* Immediate Value */
             immediate[current_assign] = Integer.parseInt(addinstruction[2]);
             if(ops[current_assign].equals("fld")){
+                number_load++;
                 // fld F2, 200(R0)
                 int j =  Integer.parseInt(addinstruction[3].substring(1)); // Physical register index
                 if(RegisterFile.RegisterStatus[j]==-1){
@@ -816,6 +802,7 @@ public class ReservationStation {
                     modej[current_assign]=1;
                 }
             }else{
+                number_store++;
                 // fsd F0, 0(R2)
                 int j =  Integer.parseInt(addinstruction[1].substring(1)); // Physical register index
                 if(RegisterFile.RegisterStatus[j]==-1){
@@ -836,7 +823,7 @@ public class ReservationStation {
                 ROB.store_ROB.put(ROBnumber,new ROB.StoreTuple());
             }
             dest[current_assign] = ROBnumber;
-            ROB.SetState(dest[current_execute], 'i');
+            ROB.SetState(dest[current_assign], 'i');
             if(ops[current_assign].equals("fld")) {
                 int dest_register = Integer.parseInt(addinstruction[1].substring(1));
                 RegisterFile.SetRegisterStatus(dest_register, ROBnumber);
@@ -844,10 +831,9 @@ public class ReservationStation {
         }
 
         public void execute(){
-            if(one_execute) {
+            if(one_execute && ( ROB.state[dest[current_execute]] == 'i' || ROB.state[dest[current_execute]] == 'e') ) {
                 /* Change The State of the Instruction In ROB*/
                 ROB.SetState(dest[current_execute], 'e');
-
                 // Check if we are stalled
                 /* If we are stalled, then watch CDB */
                 /* the other reservation stations are still producing the source operands*/
@@ -860,8 +846,6 @@ public class ReservationStation {
                                 // CDB has the Value therefore we get value from CDB
                                 modej[k] = 0;
                                 Vj[k] = CDB.get(Qj[k]);
-                            }else{
-                                return;
                             }
                         }
                         if(ops[k].equals("fsd")){
@@ -871,8 +855,6 @@ public class ReservationStation {
                                     // CDB has the Value therefore we get value from CDB
                                     modek[k] = 0;
                                     Vk[k] = CDB.get(Qk[k]);
-                                }else {
-                                    return;
                                 }
                             }
                         }
@@ -880,7 +862,6 @@ public class ReservationStation {
                         break;
                     }
                 }
-
                 /* Then start to execute */
                 if(waiting_cycle[current_execute]>0) {
                     waiting_cycle[current_execute]--;
@@ -889,7 +870,7 @@ public class ReservationStation {
         }
 
         public void writeback(){
-            if(one_execute) {
+            if(one_execute&& ROB.state[dest[current_execute]] == 'e') {
                 if (waiting_cycle[current_execute] == 0 && !CDB.isfull()) {
                     // Finish Execution Memory Access fld R1 100(R2) M(100 + R2)
                     if (ops[current_execute].equals("fld")) {
@@ -899,7 +880,7 @@ public class ReservationStation {
                         if(ROB.canload(rob,address).address == 2){
                             // Wait for unknown address calculation.
                         }else{
-                            if(ROB.canload(rob,address).address == 1) {
+                            if(ROB.canload(rob,address).address == 0) {
                                 // Load from memory
                                 dest_value[current_execute] = MemoryUnit.load(address);
                             }else {
@@ -913,12 +894,17 @@ public class ReservationStation {
                             /* Mark the Reservation Station to unbusy*/
                             waiting_cycle[current_execute] = latency;
                             busy[current_execute] = false;
+                            if(ops[current_execute].equals("fld")){
+                                number_load--;
+                            }else{
+                                number_store--;
+                            }
                             current_execute++;
                             current_execute = current_execute % number;
                             /* Update Execution */
-                            if (busy[current_execute]) {
+                            if(number_store + number_load >0){
                                 one_execute = true;
-                            } else {
+                            }else{
                                 one_execute = false;
                             }
                         }
@@ -934,9 +920,9 @@ public class ReservationStation {
                         current_execute++;
                         current_execute = current_execute % number;
                         /* Update Execution */
-                        if (busy[current_execute]) {
+                        if(number_store + number_load >0){
                             one_execute = true;
-                        } else {
+                        }else{
                             one_execute = false;
                         }
                     }
@@ -998,6 +984,7 @@ public class ReservationStation {
         }
 
         public void issue(String[] addinstruction,int ROBnumber){
+            busy = true;
             int j =  Integer.parseInt(addinstruction[1].substring(1)); // Physical register index
             if(RegisterFile.RegisterStatus[j]==-1){
                 Vj = RegisterFile.register_value[j];
@@ -1029,8 +1016,9 @@ public class ReservationStation {
         }
 
         public void execute(){
-            if(busy) {
+            if(busy&& (ROB.state[dest] == 'i' || ROB.state[dest] == 'e')){
                 ROB.SetState(dest, 'e');
+
                 if (modej == 1) {
                     if (CDB.hasValue(Qj)) {
                         modej = 0;
@@ -1055,7 +1043,7 @@ public class ReservationStation {
         }
 
         public void writeback(){
-            if(busy) {
+            if(busy && ROB.state[dest] == 'e') {
                 if(remaincycle == 0 && !CDB.isfull()){
                     if(Vj == Vk) {
                         dest_value = 0;
@@ -1083,9 +1071,6 @@ public class ReservationStation {
     public static FPmult FPmulRS = new FPmult();
     public static FPdiv FPdivRS = new FPdiv();
     public static BU BURS = new BU();
-
-    public ReservationStation(){
-    }
 
     public static void flush(){
         INTRS.flush();

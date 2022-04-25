@@ -3,7 +3,7 @@ import java.util.LinkedList;
 import java.util.TreeSet;
 
 public class RegisterFile{
-    final static int R = 32;
+    final static int R = 1000;
     public static TreeSet<Integer> freeList = new TreeSet<>();
     public static HashMap<String, String> maptable = new HashMap<>();
     public static HashMap<String, Integer> pregister_counter = new HashMap<>();

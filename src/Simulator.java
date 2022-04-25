@@ -56,20 +56,22 @@ public class Simulator {
         DecodeUnit decodeUnit = new DecodeUnit(NF,instructionQueue);
         InstructionUnit instructionUnit = new InstructionUnit(instructionCache,decodeUnit,branchPredictor);
         ReadProgram("src/prog.dat", instructionCache,branchTargetBuffer);
-        /**
-        memoryUnit.display();
-        branchTargetBuffer.display();
-        instructionCache.display();
-         **/
+
+        //branchTargetBuffer.display();
+        //instructionCache.display();
+
 
         int cycle = 0;
 
-        while(true){
+        while(cycle<100){
             System.out.println(cycle);
+
             // Commit
             boolean commitsuccess = rob.Commit();
+
             // WriteBack
             reservationStation.WB();
+
             // Execution
             reservationStation.EXE();
             // Issue
@@ -85,7 +87,8 @@ public class Simulator {
                 System.out.print(s+" ");
                 System.out.println(RegisterFile.maptable.get(s));
             }
-            **/
+             **/
+            CDB.display();
             rob.display();
         }
     }

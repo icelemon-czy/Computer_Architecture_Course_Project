@@ -80,9 +80,31 @@ public class DecodeUnit {
      * HashMap<String, String> maptable;
      */
     public String[] RegisterRename(String[] instructions){
+
         String ops = instructions[0];
+        String ArchitectedRegister;
+        // For the RAW we do nothing
+        for(int i = 2;i<=3;i++){
+            if(!(ops.equals("bne") && i==3)) {
+                if (isRegister(instructions[i])) {
+                    ArchitectedRegister = instructions[i];
+                    // Assign a free physical register to Architected Register if it does not original in map table
+                    if (!RegisterFile.maptable.containsKey(ArchitectedRegister)) {
+                        int freeregister = RegisterFile.freeList.iterator().next();
+                        RegisterFile.freeList.remove(freeregister);
+                        instructions[i] = "p" + freeregister;
+                        RegisterFile.maptable.put(ArchitectedRegister, instructions[i]);
+                        RegisterFile.pregister_counter.put(instructions[i],1);
+                    } else {
+                        instructions[i] = RegisterFile.maptable.get(ArchitectedRegister);
+                        RegisterFile.pregister_counter.put(instructions[i],RegisterFile.pregister_counter.get(instructions[i])+1);
+                    }
+                }
+            }
+        }
+
         //For the first register
-        String ArchitectedRegister = instructions[1];
+        ArchitectedRegister = instructions[1];
         // Assign a free physical register to Architected Register if it does not original in map table
         if (!RegisterFile.maptable.containsKey(ArchitectedRegister)) {
             int freeregister = RegisterFile.freeList.iterator().next();
@@ -106,25 +128,6 @@ public class DecodeUnit {
             }
         }
 
-        // For the RAW we do nothing
-        for(int i = 2;i<=3;i++){
-            if(!(ops.equals("bne") && i==3)) {
-                if (isRegister(instructions[i])) {
-                    ArchitectedRegister = instructions[i];
-                    // Assign a free physical register to Architected Register if it does not original in map table
-                    if (!RegisterFile.maptable.containsKey(ArchitectedRegister)) {
-                        int freeregister = RegisterFile.freeList.iterator().next();
-                        RegisterFile.freeList.remove(freeregister);
-                        instructions[i] = "p" + freeregister;
-                        RegisterFile.maptable.put(ArchitectedRegister, instructions[i]);
-                        RegisterFile.pregister_counter.put(instructions[i],1);
-                    } else {
-                        instructions[i] = RegisterFile.maptable.get(ArchitectedRegister);
-                        RegisterFile.pregister_counter.put(instructions[i],RegisterFile.pregister_counter.get(instructions[i])+1);
-                    }
-                }
-            }
-        }
         /**
         for(String s:instructions){
             System.out.print(s+" ");

@@ -11,7 +11,11 @@ public class MemoryUnit {
         memorycontent.put(address,value);
     }
     public static double load(int address){
-        return memorycontent.get(address);
+        if(memorycontent.containsKey(address)) {
+            return memorycontent.get(address);
+        }else{
+            return 0;
+        }
     }
 
     // Display everything inside memory unit, only for validation
